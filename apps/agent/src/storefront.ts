@@ -14,7 +14,7 @@ import { CONFIG } from "./config.ts";
 import { record, recent, totals } from "./ledger.ts";
 import { getBalances, account, privateKey } from "./wallet.ts";
 import { treasuryState } from "./treasury.ts";
-import { buyerAddress, getBoard, getInsights, getLoopError } from "./loop.ts";
+import { buyerAddress, getBoard, getInsights, getLoopError, getSignals } from "./loop.ts";
 import { trackRecord } from "./predictions.ts";
 
 export function startStorefront(): void {
@@ -97,7 +97,12 @@ export function startStorefront(): void {
       ledger: recent(60),
       insights: getInsights(20),
       board: getBoard() ?? null,
-      prices: { insightUsdc: microToUsdc(CONFIG.prices.insight) },
+      signals: getSignals() ?? null,
+      prices: {
+        insightUsdc: microToUsdc(CONFIG.prices.insight),
+        deepUsdc: microToUsdc(CONFIG.forgePrices.deep),
+        signalsUsdc: microToUsdc(CONFIG.forgePrices.signals),
+      },
     });
   });
 

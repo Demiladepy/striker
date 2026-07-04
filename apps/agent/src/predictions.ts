@@ -1,13 +1,17 @@
 /**
- * STRIKER's track record — the agent grades its own win-probability calls.
+ * STRIKER's track record — the agent grades its own win-probability calls and
+ * stakes its own USDC on the ones it trusts.
  *
  * Every paid insight carries a live win-probability distribution. We snapshot
- * that distribution as a "call"; when the match reaches full time we score it
- * with the Brier score (a proper scoring rule) and mark whether the favoured
- * outcome came in. STRIKER is therefore accountable: its accuracy and
- * calibration are measurable on-screen, not just vibes.
+ * that as a "call"; when confident enough, STRIKER locks a stake at fair odds
+ * derived from its own model (payout = stake / favoredProb). At full time the
+ * call is Brier-graded and the stake settles — win or loss hits the ledger.
  */
+import { randomBytes } from "node:crypto";
+import { microToUsdc, usdcToMicro } from "@striker/x402kit";
 import type { DeepPayload, Insight } from "./brain.ts";
+import { CONFIG } from "./config.ts";
+import { record } from "./ledger.ts";
 
 export type Outcome = "home" | "draw" | "away";
 
@@ -15,43 +19,56 @@ export interface Call {
   id: string;
   matchId: string;
   fixture: string;
-  /** minute the call was made */
   minute: number;
-  /** score at the time of the call */
   score: string;
   winProb: { home: number; draw: number; away: number };
   favored: Outcome;
   favoredProb: number;
   confidence: number;
   ts: number;
+  simulated: boolean;
   graded: boolean;
   result?: Outcome;
   finalScore?: string;
   correct?: boolean;
   /** Brier score for this call, 0 (perfect) … 2 (worst) for a 3-way market */
   brier?: number;
+  /** stake locked on this call, in USDC micro-units */
+  stakeMicro?: string;
+  stakeSettled?: boolean;
+  /** total return on a winning stake (includes original stake) */
+  payoutMicro?: string;
+  /** net stake P&L in micro-units once settled */
+  stakePnlMicro?: string;
+}
+
+export interface StakesSummary {
+  enabled: boolean;
+  stakeUsdc: number;
+  minFavoredProb: number;
+  placed: number;
+  settled: number;
+  won: number;
+  lost: number;
+  open: number;
+  openStakeUsdc: number;
+  stakedUsdc: number;
+  wonUsdc: number;
+  pnlUsdc: number;
 }
 
 export interface TrackRecord {
   calls: number;
   graded: number;
-  /** calls still waiting on a full-time whistle */
   open: number;
   correct: number;
-  /** correct / graded, 0..1 */
   accuracy: number;
-  /** mean Brier over graded calls; lower is better */
   meanBrier: number | null;
-  /** Brier skill score vs an uninformed (1/3,1/3,1/3) forecast; higher is better */
   skillScore: number | null;
+  stakes: StakesSummary;
   recent: Call[];
 }
 
-/**
- * Brier of a flat (1/3,1/3,1/3) forecast against any one-hot result:
- * two misses at (1/3)^2 plus one hit at (2/3)^2 = 0.6667. Anything below this
- * means STRIKER's probabilities carry real skill.
- */
 const UNINFORMED_BRIER = 2 * (1 / 3) ** 2 + (2 / 3) ** 2;
 
 const calls: Call[] = [];
@@ -62,9 +79,56 @@ function favoredOutcome(p: { home: number; draw: number; away: number }): Outcom
   return "draw";
 }
 
+function simTxHash(): string {
+  return `0x${randomBytes(32).toString("hex")}`;
+}
+
+function maybeStake(call: Call, favored: Outcome, deep: DeepPayload, insight: Insight): void {
+  const { staking } = CONFIG;
+  if (!staking.enabled || deep.winProb[favored] < staking.minFavoredProb) return;
+
+  const stakeMicro = usdcToMicro(staking.stakeUsdc);
+  call.stakeMicro = stakeMicro;
+  record({
+    ts: insight.ts,
+    kind: "stake",
+    amountMicro: stakeMicro,
+    counterparty: "prediction-market",
+    purpose: `stake ${microToUsdc(stakeMicro)} USDC on ${favored} @ ${(deep.winProb[favored] * 100).toFixed(0)}% · ${deep.fixture}`,
+    txHash: simTxHash(),
+    network: CONFIG.network,
+    // stakes settle against STRIKER's own model, not an on-chain market (yet) —
+    // always simulated so the dashboard never links a fabricated tx hash
+    simulated: true,
+  });
+}
+
+function settleStake(call: Call): void {
+  if (!call.stakeMicro || call.stakeSettled) return;
+  call.stakeSettled = true;
+
+  if (call.correct) {
+    const payoutMicro = String(Math.round(Number(call.stakeMicro) / call.favoredProb));
+    call.payoutMicro = payoutMicro;
+    call.stakePnlMicro = String(Number(payoutMicro) - Number(call.stakeMicro));
+    record({
+      ts: Date.now(),
+      kind: "stake_win",
+      amountMicro: payoutMicro,
+      counterparty: "prediction-market",
+      purpose: `stake won · ${call.fixture} · ${microToUsdc(call.stakeMicro)} → ${microToUsdc(payoutMicro)} USDC`,
+      txHash: simTxHash(),
+      network: CONFIG.network,
+      simulated: true,
+    });
+  } else {
+    call.stakePnlMicro = `-${call.stakeMicro}`;
+  }
+}
+
 export function registerCall(deep: DeepPayload, insight: Insight): void {
   const favored = favoredOutcome(deep.winProb);
-  calls.push({
+  const call: Call = {
     id: `${insight.id}-call`,
     matchId: deep.matchId,
     fixture: deep.fixture,
@@ -75,8 +139,11 @@ export function registerCall(deep: DeepPayload, insight: Insight): void {
     favoredProb: Number(deep.winProb[favored].toFixed(3)),
     confidence: insight.confidence,
     ts: insight.ts,
+    simulated: insight.simulated,
     graded: false,
-  });
+  };
+  maybeStake(call, favored, deep, insight);
+  calls.push(call);
   if (calls.length > 1000) calls.splice(0, calls.length - 1000);
 }
 
@@ -96,7 +163,6 @@ function brierScore(p: { home: number; draw: number; away: number }, result: Out
   return (p.home - oneHot.home) ** 2 + (p.draw - oneHot.draw) ** 2 + (p.away - oneHot.away) ** 2;
 }
 
-/** Grade every open call whose match has just reached full time. */
 export function gradeBoard(matches: FinishableMatch[]): void {
   const finished = new Map<string, { result: Outcome; finalScore: string }>();
   for (const m of matches) {
@@ -114,7 +180,33 @@ export function gradeBoard(matches: FinishableMatch[]): void {
     call.finalScore = fin.finalScore;
     call.correct = call.favored === fin.result;
     call.brier = Number(brierScore(call.winProb, fin.result).toFixed(4));
+    settleStake(call);
   }
+}
+
+function stakesSummary(): StakesSummary {
+  const staked = calls.filter((c) => c.stakeMicro);
+  const settled = staked.filter((c) => c.stakeSettled);
+  const won = settled.filter((c) => c.correct);
+  const lost = settled.filter((c) => !c.correct);
+  const open = staked.filter((c) => !c.stakeSettled);
+  const stakedMicro = staked.reduce((s, c) => s + BigInt(c.stakeMicro!), 0n);
+  const wonMicro = won.reduce((s, c) => s + BigInt(c.payoutMicro ?? "0"), 0n);
+  const openMicro = open.reduce((s, c) => s + BigInt(c.stakeMicro!), 0n);
+  return {
+    enabled: CONFIG.staking.enabled,
+    stakeUsdc: CONFIG.staking.stakeUsdc,
+    minFavoredProb: CONFIG.staking.minFavoredProb,
+    placed: staked.length,
+    settled: settled.length,
+    won: won.length,
+    lost: lost.length,
+    open: open.length,
+    openStakeUsdc: microToUsdc(openMicro.toString()),
+    stakedUsdc: microToUsdc(stakedMicro.toString()),
+    wonUsdc: microToUsdc(wonMicro.toString()),
+    pnlUsdc: microToUsdc((wonMicro - stakedMicro).toString()),
+  };
 }
 
 export function trackRecord(): TrackRecord {
@@ -133,6 +225,7 @@ export function trackRecord(): TrackRecord {
     accuracy: graded.length ? Number((correct / graded.length).toFixed(3)) : 0,
     meanBrier,
     skillScore,
+    stakes: stakesSummary(),
     recent: [...graded].sort((a, b) => b.ts - a.ts).slice(0, 12),
   };
 }

@@ -18,6 +18,20 @@ export const CONFIG = {
     /** GET /api/insight — STRIKER's freshest paid take */
     insight: "50000", // 0.05 USDC
   },
+  /** Data Forge paid routes — must match apps/data-forge/src/config.ts */
+  forgePrices: {
+    deep: "20000", // 0.02 USDC
+    signals: "10000", // 0.01 USDC
+  },
+  /** Cross-match signal sheet scout — cheaper than per-match /api/deep when 2+ live */
+  signals: {
+    enabled: process.env.SIGNALS_ENABLED !== "false",
+    /** min live matches before buying the sheet */
+    minLive: Number(process.env.SIGNALS_MIN_LIVE ?? 2),
+    cooldownMs: Number(process.env.SIGNALS_COOLDOWN_MS ?? 120_000),
+    /** only act on matches at or above this pressure index */
+    pressureMin: Number(process.env.SIGNALS_PRESSURE_MIN ?? 55),
+  },
   treasury: {
     reserveKey: (process.env.CCTP_RESERVE_PRIVATE_KEY || undefined) as Hex | undefined,
     sourceRpc: process.env.CCTP_SOURCE_RPC || "https://ethereum-sepolia-rpc.publicnode.com",
@@ -33,4 +47,12 @@ export const CONFIG = {
   buyCooldownMs: 55_000,
   /** sim-mode opening bankroll in USDC */
   simOpeningBankUsdc: 10,
+  /** STRIKER stakes its own USDC on confident win-prob calls; settled at full time */
+  staking: {
+    enabled: process.env.STAKE_ENABLED !== "false",
+    /** stake size per call, in USDC */
+    stakeUsdc: Number(process.env.STAKE_USDC ?? 0.01),
+    /** only stake when the favoured outcome clears this probability bar */
+    minFavoredProb: Number(process.env.STAKE_MIN_PROB ?? 0.55),
+  },
 };

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import type { AgentState, Call, Insight, LedgerEntry, MatchSummary, Outcome, TrackRecord } from "./types";
+import type { AgentState, Call, Insight, LedgerEntry, MatchSummary, Outcome, SignalsSnapshot, TrackRecord } from "./types";
 
 const EXPLORER = "https://testnet.blockscout.injective.network/tx/";
 
@@ -52,7 +52,10 @@ function InsightCard({ insight }: { insight: Insight }) {
         <span className="fixture">
           {insight.fixture} · {insight.minute}&apos; · {insight.score}
         </span>
-        <span className="engine">{insight.engine === "claude" ? "🧠 claude" : "⚙ template"}</span>
+        <span className="engine">
+          {insight.dataSource === "signals" ? "📡 signals" : "🔬 deep"} ·{" "}
+          {insight.engine === "claude" ? "claude" : "template"}
+        </span>
       </header>
       <h3>{insight.headline}</h3>
       <p>{insight.body}</p>
@@ -71,14 +74,57 @@ function outcomeLabel(call: Call, outcome: Outcome): string {
   return outcome === "home" ? home : outcome === "away" ? away : "draw";
 }
 
+function SignalRadar({ signals, signalsUsdc }: { signals: SignalsSnapshot | null; signalsUsdc: number }) {
+  if (!signals) {
+    return (
+      <section className="panel">
+        <h2>signal radar</h2>
+        <p className="muted">waiting for STRIKER&apos;s first cross-match scout ({signalsUsdc} USDC via x402)…</p>
+      </section>
+    );
+  }
+  const sorted = [...signals.matches].sort((a, b) => b.pressureIndex - a.pressureIndex);
+  return (
+    <section className="panel">
+      <h2>
+        signal radar <span className="muted">({signalsUsdc} USDC sheet)</span>
+      </h2>
+      <div className="radar">
+        {sorted.map((m) => (
+          <div key={m.matchId} className="radar-row">
+            <div className="radar-head">
+              <span className="radar-fixture">{m.fixture}</span>
+              <span className="muted">
+                {m.minute}&apos; · {m.score}
+              </span>
+            </div>
+            <div className="radar-bar-wrap">
+              <div className="radar-track">
+                <div className="radar-bar" style={{ width: `${m.pressureIndex}%` }} />
+              </div>
+              <span className="radar-val">{m.pressureIndex}</span>
+            </div>
+            <div className="radar-meta muted">
+              momentum {m.momentum.home}/{m.momentum.away} · win prob{" "}
+              {(m.winProb.home * 100).toFixed(0)}/{(m.winProb.draw * 100).toFixed(0)}/{(m.winProb.away * 100).toFixed(0)}
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 function TrackRecordPanel({ tr }: { tr: TrackRecord }) {
+  const s = tr.stakes;
   return (
     <section className="panel full">
-      <h2>track record — STRIKER grades its own win-probability calls</h2>
+      <h2>track record — graded calls + prediction stakes on its own P&amp;L</h2>
       {tr.graded === 0 ? (
         <p className="muted">
           no calls settled yet — every paid insight is a logged win-prob call, graded the moment its
           match hits full time. {tr.open > 0 ? `${tr.open} open.` : ""}
+          {s.enabled ? ` Stakes ${s.stakeUsdc} USDC when favoured ≥ ${(s.minFavoredProb * 100).toFixed(0)}%.` : ""}
         </p>
       ) : (
         <>
@@ -102,9 +148,14 @@ function TrackRecordPanel({ tr }: { tr: TrackRecord }) {
               <span className="muted">Brier skill score</span>
             </div>
             <div>
-              <label>open calls</label>
-              <strong>{tr.open}</strong>
-              <span className="muted">awaiting full time</span>
+              <label>stake P&amp;L</label>
+              <strong className={s.pnlUsdc >= 0 ? "pos" : "neg"}>
+                {s.pnlUsdc >= 0 ? "+" : ""}
+                {s.pnlUsdc.toFixed(3)}
+              </strong>
+              <span className="muted">
+                {s.won}/{s.settled} stakes won · {s.open} open ({s.openStakeUsdc.toFixed(2)} USDC)
+              </span>
             </div>
           </div>
           <div className="tr-calls">
@@ -118,6 +169,15 @@ function TrackRecordPanel({ tr }: { tr: TrackRecord }) {
                 <span className="muted">
                   → {c.finalScore} ({c.result ? outcomeLabel(c, c.result) : "?"})
                 </span>
+                {c.stakeMicro && (
+                  <span className={`tr-stake ${c.stakeSettled ? (c.correct ? "pos" : "neg") : ""}`}>
+                    {c.stakeSettled
+                      ? c.correct
+                        ? `+${usdc(String(Number(c.payoutMicro!) - Number(c.stakeMicro)))} stake`
+                        : `−${usdc(c.stakeMicro)} stake`
+                      : `${usdc(c.stakeMicro)} staked`}
+                  </span>
+                )}
                 <span className="tr-brier">Brier {c.brier?.toFixed(2)}</span>
               </div>
             ))}
@@ -129,7 +189,7 @@ function TrackRecordPanel({ tr }: { tr: TrackRecord }) {
 }
 
 function LedgerRow({ entry }: { entry: LedgerEntry }) {
-  const sign = entry.kind === "spend" ? "−" : "+";
+  const sign = entry.kind === "spend" || entry.kind === "stake" ? "−" : "+";
   return (
     <tr className={entry.kind}>
       <td>{clock(entry.ts)}</td>
@@ -236,6 +296,16 @@ export default function App() {
           </span>
         </div>
         <div className="stat">
+          <label>stake book</label>
+          <strong className={state.book.stakePnlUsdc >= 0 ? "pos" : "neg"}>
+            {state.book.stakePnlUsdc >= 0 ? "+" : ""}
+            {state.book.stakePnlUsdc.toFixed(3)}
+          </strong>
+          <span className="muted">
+            {state.trackRecord.stakes.placed} stakes · {state.trackRecord.stakes.stakeUsdc} USDC each
+          </span>
+        </div>
+        <div className="stat">
           <label>CCTP treasury</label>
           <strong>{state.treasury.inFlight ? "⏳ top-up in flight" : "✓ solvent"}</strong>
           <span className="muted">
@@ -247,14 +317,18 @@ export default function App() {
       {state.agent.loopError && <div className="alert">loop: {state.agent.loopError}</div>}
 
       <main className="grid">
-        <section className="panel">
-          <h2>
-            match board <span className="muted">({live.length} live)</span>
-          </h2>
-          <div className="matches">
-            {state.board?.matches.map((m) => <MatchCard key={m.id} match={m} />) ?? <p>no feed yet</p>}
-          </div>
-        </section>
+        <div className="side-col">
+          <section className="panel">
+            <h2>
+              match board <span className="muted">({live.length} live)</span>
+            </h2>
+            <div className="matches">
+              {state.board?.matches.map((m) => <MatchCard key={m.id} match={m} />) ?? <p>no feed yet</p>}
+            </div>
+          </section>
+
+          <SignalRadar signals={state.signals} signalsUsdc={state.prices.signalsUsdc} />
+        </div>
 
         <section className="panel wide">
           <h2>insight stream — {state.prices.insightUsdc} USDC per full read via x402</h2>
@@ -270,7 +344,7 @@ export default function App() {
         <TrackRecordPanel tr={state.trackRecord} />
 
         <section className="panel full">
-          <h2>payment ledger — every x402 + CCTP settlement</h2>
+          <h2>payment ledger — every x402, stake, and CCTP settlement</h2>
           <table>
             <thead>
               <tr>

@@ -39,10 +39,10 @@ No accounts. No API keys. No human in the loop.
 ## How each Injective technology is used
 
 ### x402 — the core of the product, used on BOTH sides of the market
-- **STRIKER as buyer**: the decision loop watches the free scoreboard and,
-  when a goal lands or the pressure index spikes, pays the Data Forge
-  `0.02 USDC` for deep analytics via [`@injectivelabs/x402`](https://www.npmjs.com/package/@injectivelabs/x402)
-  (`createInjectiveClient` / EIP-3009 signed authorizations) —
+- **STRIKER as buyer**: the decision loop watches the free scoreboard and pays
+  the Data Forge via x402 — `0.02 USDC` for per-match `/api/deep` on goals and
+  endgame, and `0.01 USDC` for the cross-match `/api/signals` sheet when 2+
+  games are live (publishes from the hottest match, no second deep buy) —
   [`apps/agent/src/loop.ts`](apps/agent/src/loop.ts).
 - **STRIKER as seller**: its own storefront gates `GET /api/insight` at
   `0.05 USDC` with the same protocol — [`apps/agent/src/storefront.ts`](apps/agent/src/storefront.ts).
@@ -143,16 +143,18 @@ scripts/gen-wallets.mjs    wallet bootstrap
 4. `apps/agent/src/treasury.ts`: the agent decides *by policy* when to move
    money across chains. Nobody clicks anything.
 5. `GET http://localhost:4042/api/track-record` (free): STRIKER logs every
-   win-probability call it sells and grades it against the final score with a
-   Brier score. Its accuracy and skill-vs-coin-flip are on the dashboard —
-   the analysis is measurable, not vibes ([`apps/agent/src/predictions.ts`](apps/agent/src/predictions.ts)).
+   win-probability call it sells, grades it against the final score with a
+   Brier score, and **stakes its own USDC** on confident calls — payout at
+   fair odds from its model, settled at full time. Accuracy, Brier skill,
+   and stake P&L are all on the dashboard
+   ([`apps/agent/src/predictions.ts`](apps/agent/src/predictions.ts)).
 
 ## Roadmap (post-hackathon)
 
 - Publish the Data Forge as a public x402 endpoint so any agent can buy the feed
 - ERC-8004 identity mint on initialization via the Injective MCP Server
-- Prediction-market settlement: STRIKER already self-grades its win-prob calls
-  (Brier score, live on the dashboard) — next it stakes real P&L on them
+- On-chain prediction market: stakes currently settle in the agent ledger (sim/live);
+  next step is a smart-contract pool other agents can join
 - Multi-analyst marketplace: competing agents, one x402 rail
 
 ## License

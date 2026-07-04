@@ -68,6 +68,7 @@ body {
 }
 
 .grid { display: grid; grid-template-columns: 340px 1fr; gap: 14px; }
+.side-col { display: grid; gap: 14px; align-content: start; }
 .panel {
   background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 16px;
 }
@@ -102,8 +103,8 @@ body {
 table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
 th { text-align: left; color: var(--muted); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; padding: 6px 8px; border-bottom: 1px solid var(--line); }
 td { padding: 7px 8px; border-bottom: 1px solid #141b30; }
-tr.earn .amount, tr.topup .amount { color: var(--pos); font-weight: 700; }
-tr.spend .amount { color: var(--neg); font-weight: 700; }
+tr.earn .amount, tr.topup .amount, tr.stake_win .amount { color: var(--pos); font-weight: 700; }
+tr.spend .amount, tr.stake .amount { color: var(--neg); font-weight: 700; }
 .purpose { color: #b9c3da; }
 .tx.sim { color: var(--gold); }
 .tx.live { color: var(--accent); text-decoration: none; }
@@ -133,6 +134,19 @@ tr.spend .amount { color: var(--neg); font-weight: 700; }
 .tr-call.miss .tr-mark { color: var(--neg); }
 .tr-fixture { font-weight: 600; }
 .tr-brier { margin-left: auto; color: var(--muted); font-family: Consolas, "Cascadia Code", monospace; font-size: 0.78rem; }
+.tr-stake { font-size: 0.78rem; font-weight: 600; }
+.tr-stake.pos { color: var(--pos); }
+.tr-stake.neg { color: var(--neg); }
+
+.radar { display: grid; gap: 10px; }
+.radar-row { border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; background: var(--panel-2); }
+.radar-head { display: flex; justify-content: space-between; gap: 8px; margin-bottom: 6px; font-size: 0.82rem; }
+.radar-fixture { font-weight: 600; }
+.radar-bar-wrap { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+.radar-track { flex: 1; height: 6px; border-radius: 999px; background: #1a2238; overflow: hidden; }
+.radar-bar { height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--accent), var(--live)); }
+.radar-val { font-size: 0.75rem; font-weight: 700; color: var(--gold); min-width: 24px; text-align: right; }
+.radar-meta { font-size: 0.72rem; }
 
 .foot { text-align: center; color: var(--muted); font-size: 0.78rem; padding: 20px 0 8px; }
 

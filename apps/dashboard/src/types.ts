@@ -1,6 +1,6 @@
 export interface LedgerEntry {
   ts: number;
-  kind: "spend" | "earn" | "topup";
+  kind: "spend" | "earn" | "topup" | "stake" | "stake_win";
   amountMicro: string;
   counterparty: string;
   purpose: string;
@@ -19,6 +19,7 @@ export interface Insight {
   body: string;
   confidence: number;
   engine: "claude" | "template";
+  dataSource: "deep" | "signals";
   costMicro: string;
   dataTxHash: string;
   simulated: boolean;
@@ -54,6 +55,26 @@ export interface Call {
   finalScore?: string;
   correct?: boolean;
   brier?: number;
+  stakeMicro?: string;
+  stakeSettled?: boolean;
+  payoutMicro?: string;
+  stakePnlMicro?: string;
+  simulated: boolean;
+}
+
+export interface StakesSummary {
+  enabled: boolean;
+  stakeUsdc: number;
+  minFavoredProb: number;
+  placed: number;
+  settled: number;
+  won: number;
+  lost: number;
+  open: number;
+  openStakeUsdc: number;
+  stakedUsdc: number;
+  wonUsdc: number;
+  pnlUsdc: number;
 }
 
 export interface TrackRecord {
@@ -64,7 +85,24 @@ export interface TrackRecord {
   accuracy: number;
   meanBrier: number | null;
   skillScore: number | null;
+  stakes: StakesSummary;
   recent: Call[];
+}
+
+export interface SignalMatch {
+  matchId: string;
+  fixture: string;
+  minute: number;
+  score: string;
+  pressureIndex: number;
+  momentum: { home: number; away: number };
+  winProb: { home: number; draw: number; away: number };
+}
+
+export interface SignalsSnapshot {
+  source: "live" | "replay";
+  generatedAt: string;
+  matches: SignalMatch[];
 }
 
 export interface AgentState {
@@ -77,7 +115,16 @@ export interface AgentState {
     loopError: string | null;
   };
   balances: { address: string; usdcBalance: number; injBalance: number; mode: string; network: string };
-  book: { earnedUsdc: number; spentUsdc: number; toppedUpUsdc: number; pnlUsdc: number; entryCount: number };
+  book: {
+    earnedUsdc: number;
+    spentUsdc: number;
+    toppedUpUsdc: number;
+    pnlUsdc: number;
+    stakedUsdc: number;
+    stakeWonUsdc: number;
+    stakePnlUsdc: number;
+    entryCount: number;
+  };
   trackRecord: TrackRecord;
   treasury: {
     floorUsdc: number;
@@ -88,5 +135,6 @@ export interface AgentState {
   ledger: LedgerEntry[];
   insights: Insight[];
   board: { source: "live" | "replay"; competition: string; matches: MatchSummary[] } | null;
-  prices: { insightUsdc: number };
+  signals: SignalsSnapshot | null;
+  prices: { insightUsdc: number; deepUsdc: number; signalsUsdc: number };
 }

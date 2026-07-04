@@ -9,7 +9,7 @@ import { microToUsdc } from "@striker/x402kit";
 
 export interface LedgerEntry {
   ts: number;
-  kind: "spend" | "earn" | "topup";
+  kind: "spend" | "earn" | "topup" | "stake" | "stake_win";
   /** USDC smallest units */
   amountMicro: string;
   counterparty: string;
@@ -32,7 +32,7 @@ export function record(entry: LedgerEntry): void {
   } catch {
     /* dashboard still works off memory if the disk write fails */
   }
-  const sign = entry.kind === "spend" ? "−" : "+";
+  const sign = entry.kind === "spend" || entry.kind === "stake" ? "−" : "+";
   console.log(
     `[ledger] ${sign}${microToUsdc(entry.amountMicro)} USDC ${entry.kind} · ${entry.purpose} · ${entry.simulated ? "SIM" : entry.txHash.slice(0, 18) + "…"}`,
   );
@@ -46,16 +46,23 @@ export function totals() {
   let earnedMicro = 0n;
   let spentMicro = 0n;
   let toppedUpMicro = 0n;
+  let stakedMicro = 0n;
+  let stakeWonMicro = 0n;
   for (const e of entries) {
-    if (e.kind === "earn") earnedMicro += BigInt(e.amountMicro);
-    else if (e.kind === "spend") spentMicro += BigInt(e.amountMicro);
+    if (e.kind === "earn" || e.kind === "stake_win") earnedMicro += BigInt(e.amountMicro);
+    else if (e.kind === "spend" || e.kind === "stake") spentMicro += BigInt(e.amountMicro);
     else toppedUpMicro += BigInt(e.amountMicro);
+    if (e.kind === "stake") stakedMicro += BigInt(e.amountMicro);
+    if (e.kind === "stake_win") stakeWonMicro += BigInt(e.amountMicro);
   }
   return {
     earnedUsdc: microToUsdc(earnedMicro.toString()),
     spentUsdc: microToUsdc(spentMicro.toString()),
     toppedUpUsdc: microToUsdc(toppedUpMicro.toString()),
     pnlUsdc: microToUsdc((earnedMicro - spentMicro).toString()),
+    stakedUsdc: microToUsdc(stakedMicro.toString()),
+    stakeWonUsdc: microToUsdc(stakeWonMicro.toString()),
+    stakePnlUsdc: microToUsdc((stakeWonMicro - stakedMicro).toString()),
     entryCount: entries.length,
   };
 }

@@ -31,6 +31,8 @@ export interface Insight {
   body: string;
   confidence: number;
   engine: "claude" | "template";
+  /** which paid Data Forge route funded this insight */
+  dataSource: "deep" | "signals";
   costMicro: string;
   dataTxHash: string;
   simulated: boolean;
@@ -76,7 +78,7 @@ function templateInsight(deep: DeepPayload): { headline: string; body: string } 
 
 export async function generateInsight(
   deep: DeepPayload,
-  meta: { costMicro: string; dataTxHash: string; simulated: boolean },
+  meta: { costMicro: string; dataTxHash: string; simulated: boolean; dataSource: "deep" | "signals" },
 ): Promise<Insight> {
   let headline: string;
   let body: string;
@@ -122,6 +124,7 @@ export async function generateInsight(
     body,
     confidence: Number((0.55 + spread * 0.4).toFixed(2)),
     engine,
+    dataSource: meta.dataSource,
     costMicro: meta.costMicro,
     dataTxHash: meta.dataTxHash,
     simulated: meta.simulated,
