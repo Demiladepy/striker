@@ -37,7 +37,8 @@ export const CONFIG = {
     sourceRpc: process.env.CCTP_SOURCE_RPC || "https://ethereum-sepolia-rpc.publicnode.com",
     tokenMessenger: (process.env.CCTP_TOKEN_MESSENGER || "0x8FE6B999Dc680CcFDD5Bf7EB0974218be2542DAA") as Hex,
     sourceUsdc: (process.env.CCTP_SOURCE_USDC || "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238") as Hex,
-    destDomain: process.env.CCTP_DEST_DOMAIN ? Number(process.env.CCTP_DEST_DOMAIN) : undefined,
+    // Injective = CCTP domain 29 (Circle docs: cctp/concepts/supported-chains-and-domains)
+    destDomain: process.env.CCTP_DEST_DOMAIN ? Number(process.env.CCTP_DEST_DOMAIN) : 29,
     floorUsdc: Number(process.env.TREASURY_FLOOR_USDC ?? 2),
     topupUsdc: Number(process.env.TREASURY_TOPUP_USDC ?? 5),
   },
