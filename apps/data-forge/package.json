@@ -1,0 +1,21 @@
+{
+  "name": "@striker/data-forge",
+  "version": "0.1.0",
+  "private": true,
+  "description": "x402-gated World Cup data API on Injective EVM — free scoreboard, paid deep analytics",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx src/server.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@striker/x402kit": "*",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.2"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "tsx": "^4.19.2",
+    "typescript": "^5.6.0"
+  }
+}

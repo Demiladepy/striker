@@ -1,0 +1,31 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "WebFetch(domain:docs.injective.network)",
+      "PowerShell(node --version)",
+      "PowerShell(npm --version)",
+      "PowerShell(npm view @injectivelabs/x402 version description dist-tags --json)",
+      "PowerShell(npm view @injectivelabs/sdk-ts version --json)",
+      "PowerShell(npm view @injectivelabs/x402@latest readme 2>$null)",
+      "PowerShell($m = npm view @injectivelabs/x402 --json | ConvertFrom-Json; $m.readme; $m.dependencies; $m.homepage; $m.repository)",
+      "WebFetch(domain:github.com)",
+      "PowerShell(npm run typecheck)",
+      "PowerShell(npm run forge)",
+      "PowerShell(Start-Sleep -Seconds 4; Invoke-RestMethod http://localhost:4021/health | ConvertTo-Json -Compress; \\(Invoke-RestMethod http://localhost:4021/api/matches\\).matches | Select-Object id, home, away, homeScore, awayScore, minute, status | Format-Table -AutoSize)",
+      "PowerShell(try { Invoke-WebRequest \"http://localhost:4021/api/deep?match=qf1-c0\" -UseBasicParsing } catch { $r = $_.Exception.Response; Write-Output \"STATUS: $\\([int]$r.StatusCode\\)\"; $reader = New-Object System.IO.StreamReader\\($r.GetResponseStream\\(\\)\\); $reader.ReadToEnd\\(\\) })",
+      "PowerShell(npm run agent)",
+      "PowerShell($conn = Get-NetTCPConnection -LocalPort 4042 -State Listen -ErrorAction SilentlyContinue; if \\($conn\\) { Stop-Process -Id $conn[0].OwningProcess -Force -Confirm:$false; Write-Output \"agent stopped \\(pid $\\($conn[0].OwningProcess\\)\\)\" } else { Write-Output \"no listener on 4042\" })",
+      "PowerShell(Invoke-RestMethod http://localhost:4042/health)",
+      "PowerShell(npm view @injectivelabs/mcp-server version description --json 2>$null)",
+      "PowerShell(npm view injective-mcp-server version 2>$null)",
+      "PowerShell(npm search injective mcp --json 2>$null)",
+      "PowerShell(npm run build --workspace apps/dashboard)",
+      "PowerShell(git init 2>$null)",
+      "PowerShell(git add -A 2>$null)",
+      "PowerShell($s = Invoke-RestMethod http://localhost:4042/api/state; \"P&L: $\\($s.book.pnlUsdc\\) USDC over $\\($s.book.entryCount\\) settlements · balance $\\($s.balances.usdcBalance\\)\"; $s.insights | Select-Object -First 3 fixture, minute, score, headline | Format-Table -AutoSize)",
+      "PowerShell(git add -A)",
+      "PowerShell(git branch -M main)"
+    ]
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "name": "@striker/agent",
+  "version": "0.1.0",
+  "private": true,
+  "description": "STRIKER — the self-funding AI World Cup analyst. Buys data with x402, sells insight with x402, refills via CCTP, banks on Injective.",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx src/index.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.39.0",
+    "@striker/x402kit": "*",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.2",
+    "viem": "^2.39.3"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "tsx": "^4.19.2",
+    "typescript": "^5.6.0"
+  }
+}

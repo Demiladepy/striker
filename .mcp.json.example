@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "injective": {
+      "command": "node",
+      "args": ["/path/to/injective-mcp-server/dist/mcp/server.js"],
+      "env": {
+        "INJECTIVE_NETWORK": "testnet"
+      }
+    }
+  }
+}

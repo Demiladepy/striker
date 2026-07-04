@@ -1,0 +1,21 @@
+{
+  "name": "striker",
+  "version": "0.1.0",
+  "private": true,
+  "description": "STRIKER — the self-funding AI World Cup analyst on Injective (x402 + CCTP + MCP Server + Agent Skills)",
+  "type": "module",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "forge": "npm run dev --workspace apps/data-forge",
+    "agent": "npm run dev --workspace apps/agent",
+    "dashboard": "npm run dev --workspace apps/dashboard",
+    "gen:wallets": "node scripts/gen-wallets.mjs",
+    "typecheck": "npm run typecheck --workspaces --if-present"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
