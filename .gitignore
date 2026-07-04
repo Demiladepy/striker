@@ -5,3 +5,4 @@ dist/
 *.log
 .striker/
 apps/dashboard/dist/
+.claude/settings.local.json
