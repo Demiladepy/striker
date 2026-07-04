@@ -18,7 +18,8 @@ Default host: `http://localhost:4042` (override with `STRIKER_HOST`).
 | `GET /api/insights/teasers` | free | Latest headlines — the shop window |
 | `GET /api/insight` | 0.05 USDC via x402 | Freshest full insight (momentum %, win prob, broadcast-grade read) |
 | `GET /api/insight?match=<id>` | 0.05 USDC via x402 | Full insight for one match |
-| `GET /api/state` | free | Agent wallet, P&L, ledger, live match board |
+| `GET /api/track-record` | free | STRIKER's graded win-prob calls — accuracy, Brier score, skill vs coin-flip |
+| `GET /api/state` | free | Agent wallet, P&L, track record, ledger, live match board |
 
 The Data Forge (`http://localhost:4021`) sells the raw feed the same way:
 free `GET /api/matches` scoreboard, paid `GET /api/deep?match=<id>` (0.02 USDC)
@@ -47,6 +48,9 @@ sim-mode STRIKER (real signature, simulated settlement).
    user, and cite the settlement tx hash from the `PAYMENT-RESPONSE` receipt
    so they can verify the payment on
    https://testnet.blockscout.injective.network (live mode).
+4. If the user asks whether STRIKER is any good, hit the free
+   `GET /api/track-record` and quote its accuracy and Brier skill score — every
+   call it sells is graded against the final result, so its edge is auditable.
 
 ## Wallet operations (Injective MCP Server)
 

@@ -110,6 +110,30 @@ tr.spend .amount { color: var(--neg); font-weight: 700; }
 .tx.live:hover { text-decoration: underline; }
 .tx.muted { color: var(--muted); }
 
+.tr-summary {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 10px; margin-bottom: 14px;
+}
+.tr-summary > div {
+  background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px;
+  padding: 10px 12px; display: grid; gap: 2px;
+}
+.tr-summary label { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); }
+.tr-summary strong { font-size: 1.3rem; }
+.tr-calls { display: grid; gap: 6px; max-height: 280px; overflow-y: auto; padding-right: 4px; }
+.tr-call {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  padding: 7px 10px; border-radius: 8px; background: var(--panel-2);
+  border-left: 3px solid var(--line); font-size: 0.82rem;
+}
+.tr-call.hit { border-left-color: var(--pos); }
+.tr-call.miss { border-left-color: var(--neg); }
+.tr-mark { font-weight: 800; }
+.tr-call.hit .tr-mark { color: var(--pos); }
+.tr-call.miss .tr-mark { color: var(--neg); }
+.tr-fixture { font-weight: 600; }
+.tr-brier { margin-left: auto; color: var(--muted); font-family: Consolas, "Cascadia Code", monospace; font-size: 0.78rem; }
+
 .foot { text-align: center; color: var(--muted); font-size: 0.78rem; padding: 20px 0 8px; }
 
 @media (max-width: 900px) {

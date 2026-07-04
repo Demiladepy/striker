@@ -4,6 +4,7 @@
  *
  * Paid:  GET /api/insight            0.05 USDC — freshest full insight
  * Free:  GET /api/insights/teasers   headlines only (the shop window)
+ *        GET /api/track-record       graded win-prob calls (accuracy + Brier)
  *        GET /api/state              dashboard feed (balances, ledger, board)
  *        GET /health
  */
@@ -14,6 +15,7 @@ import { record, recent, totals } from "./ledger.ts";
 import { getBalances, account, privateKey } from "./wallet.ts";
 import { treasuryState } from "./treasury.ts";
 import { buyerAddress, getBoard, getInsights, getLoopError } from "./loop.ts";
+import { trackRecord } from "./predictions.ts";
 
 export function startStorefront(): void {
   const app = express();
@@ -74,6 +76,10 @@ export function startStorefront(): void {
     );
   });
 
+  app.get("/api/track-record", (_req, res) => {
+    res.json(trackRecord());
+  });
+
   app.get("/api/state", async (_req, res) => {
     res.json({
       agent: {
@@ -87,6 +93,7 @@ export function startStorefront(): void {
       balances: await getBalances(),
       book: totals(),
       treasury: treasuryState(),
+      trackRecord: trackRecord(),
       ledger: recent(60),
       insights: getInsights(20),
       board: getBoard() ?? null,

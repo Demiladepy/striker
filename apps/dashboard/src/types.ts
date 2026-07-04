@@ -36,6 +36,37 @@ export interface MatchSummary {
   stage: string;
 }
 
+export type Outcome = "home" | "draw" | "away";
+
+export interface Call {
+  id: string;
+  matchId: string;
+  fixture: string;
+  minute: number;
+  score: string;
+  winProb: { home: number; draw: number; away: number };
+  favored: Outcome;
+  favoredProb: number;
+  confidence: number;
+  ts: number;
+  graded: boolean;
+  result?: Outcome;
+  finalScore?: string;
+  correct?: boolean;
+  brier?: number;
+}
+
+export interface TrackRecord {
+  calls: number;
+  graded: number;
+  open: number;
+  correct: number;
+  accuracy: number;
+  meanBrier: number | null;
+  skillScore: number | null;
+  recent: Call[];
+}
+
 export interface AgentState {
   agent: {
     name: string;
@@ -47,6 +78,7 @@ export interface AgentState {
   };
   balances: { address: string; usdcBalance: number; injBalance: number; mode: string; network: string };
   book: { earnedUsdc: number; spentUsdc: number; toppedUpUsdc: number; pnlUsdc: number; entryCount: number };
+  trackRecord: TrackRecord;
   treasury: {
     floorUsdc: number;
     topupUsdc: number;

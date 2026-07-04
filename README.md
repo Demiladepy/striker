@@ -126,7 +126,7 @@ Optional power-ups in `.env`:
 ```
 packages/x402kit/          mode-switchable x402 paywall + buyer (the shared engine)
 apps/data-forge/           x402-gated World Cup data API + analytics engine
-apps/agent/                STRIKER: decision loop, brain, storefront, CCTP treasury, ledger
+apps/agent/                STRIKER: decision loop, brain, storefront, CCTP treasury, ledger, self-grading track record
 apps/dashboard/            React control room: match board, insight stream, payment ledger, P&L
 skills/worldcup-analyst/   installable Agent Skill + x402 payer script
 scripts/gen-wallets.mjs    wallet bootstrap
@@ -142,12 +142,17 @@ scripts/gen-wallets.mjs    wallet bootstrap
    agent's entire economic life is auditable.
 4. `apps/agent/src/treasury.ts`: the agent decides *by policy* when to move
    money across chains. Nobody clicks anything.
+5. `GET http://localhost:4042/api/track-record` (free): STRIKER logs every
+   win-probability call it sells and grades it against the final score with a
+   Brier score. Its accuracy and skill-vs-coin-flip are on the dashboard —
+   the analysis is measurable, not vibes ([`apps/agent/src/predictions.ts`](apps/agent/src/predictions.ts)).
 
 ## Roadmap (post-hackathon)
 
 - Publish the Data Forge as a public x402 endpoint so any agent can buy the feed
 - ERC-8004 identity mint on initialization via the Injective MCP Server
-- Prediction-market settlement: STRIKER stakes its own P&L on its win-prob calls
+- Prediction-market settlement: STRIKER already self-grades its win-prob calls
+  (Brier score, live on the dashboard) — next it stakes real P&L on them
 - Multi-analyst marketplace: competing agents, one x402 rail
 
 ## License

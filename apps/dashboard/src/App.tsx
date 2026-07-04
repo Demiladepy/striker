@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import type { AgentState, Insight, LedgerEntry, MatchSummary } from "./types";
+import type { AgentState, Call, Insight, LedgerEntry, MatchSummary, Outcome, TrackRecord } from "./types";
 
 const EXPLORER = "https://testnet.blockscout.injective.network/tx/";
 
@@ -63,6 +63,68 @@ function InsightCard({ insight }: { insight: Insight }) {
         </span>
       </footer>
     </article>
+  );
+}
+
+function outcomeLabel(call: Call, outcome: Outcome): string {
+  const [home, away] = call.fixture.split(" vs ");
+  return outcome === "home" ? home : outcome === "away" ? away : "draw";
+}
+
+function TrackRecordPanel({ tr }: { tr: TrackRecord }) {
+  return (
+    <section className="panel full">
+      <h2>track record — STRIKER grades its own win-probability calls</h2>
+      {tr.graded === 0 ? (
+        <p className="muted">
+          no calls settled yet — every paid insight is a logged win-prob call, graded the moment its
+          match hits full time. {tr.open > 0 ? `${tr.open} open.` : ""}
+        </p>
+      ) : (
+        <>
+          <div className="tr-summary">
+            <div>
+              <label>accuracy</label>
+              <strong className={tr.accuracy >= 0.5 ? "pos" : "neg"}>{(tr.accuracy * 100).toFixed(0)}%</strong>
+              <span className="muted">{tr.correct}/{tr.graded} calls right</span>
+            </div>
+            <div>
+              <label>brier score</label>
+              <strong>{tr.meanBrier?.toFixed(3)}</strong>
+              <span className="muted">lower is sharper</span>
+            </div>
+            <div>
+              <label>skill vs coin-flip</label>
+              <strong className={(tr.skillScore ?? 0) >= 0 ? "pos" : "neg"}>
+                {(tr.skillScore ?? 0) >= 0 ? "+" : ""}
+                {((tr.skillScore ?? 0) * 100).toFixed(0)}%
+              </strong>
+              <span className="muted">Brier skill score</span>
+            </div>
+            <div>
+              <label>open calls</label>
+              <strong>{tr.open}</strong>
+              <span className="muted">awaiting full time</span>
+            </div>
+          </div>
+          <div className="tr-calls">
+            {tr.recent.map((c) => (
+              <div key={c.id} className={`tr-call ${c.correct ? "hit" : "miss"}`}>
+                <span className="tr-mark">{c.correct ? "✓" : "✗"}</span>
+                <span className="tr-fixture">{c.fixture}</span>
+                <span className="muted">
+                  {c.minute}&apos; called <strong>{outcomeLabel(c, c.favored)}</strong> {(c.favoredProb * 100).toFixed(0)}%
+                </span>
+                <span className="muted">
+                  → {c.finalScore} ({c.result ? outcomeLabel(c, c.result) : "?"})
+                </span>
+                <span className="tr-brier">Brier {c.brier?.toFixed(2)}</span>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+    </section>
   );
 }
 
@@ -163,6 +225,17 @@ export default function App() {
           <span className="muted">{state.book.entryCount} settlements</span>
         </div>
         <div className="stat">
+          <label>track record</label>
+          <strong className={state.trackRecord.graded && state.trackRecord.accuracy >= 0.5 ? "pos" : undefined}>
+            {state.trackRecord.graded ? `${(state.trackRecord.accuracy * 100).toFixed(0)}%` : "—"}
+          </strong>
+          <span className="muted">
+            {state.trackRecord.graded
+              ? `${state.trackRecord.correct}/${state.trackRecord.graded} calls · ${state.trackRecord.open} open`
+              : "grading at full time"}
+          </span>
+        </div>
+        <div className="stat">
           <label>CCTP treasury</label>
           <strong>{state.treasury.inFlight ? "⏳ top-up in flight" : "✓ solvent"}</strong>
           <span className="muted">
@@ -193,6 +266,8 @@ export default function App() {
             )}
           </div>
         </section>
+
+        <TrackRecordPanel tr={state.trackRecord} />
 
         <section className="panel full">
           <h2>payment ledger — every x402 + CCTP settlement</h2>

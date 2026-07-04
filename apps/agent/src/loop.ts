@@ -11,6 +11,7 @@ import { record } from "./ledger.ts";
 import { privateKey } from "./wallet.ts";
 import { checkTreasury } from "./treasury.ts";
 import { getBalances } from "./wallet.ts";
+import { gradeBoard, registerCall } from "./predictions.ts";
 
 interface MatchSummary {
   id: string;
@@ -92,6 +93,7 @@ async function buyDeep(match: MatchSummary, reason: string): Promise<void> {
   });
   insights.push(insight);
   if (insights.length > 500) insights.splice(0, insights.length - 500);
+  registerCall(deep, insight);
   console.log(
     `[striker] 🧠 ${insight.fixture} ${insight.minute}' — "${insight.headline}" (paid ${microToUsdc(cost)} USDC, ${insight.engine})`,
   );
@@ -112,6 +114,7 @@ async function tick(): Promise<void> {
     lastScore.set(match.id, `${match.homeScore}-${match.awayScore}`);
   }
 
+  gradeBoard(latestBoard.matches);
   await checkTreasury(await getBalances());
 }
 
