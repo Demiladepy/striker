@@ -12,6 +12,7 @@
     "forge": "npm run dev --workspace apps/data-forge",
     "agent": "npm run dev --workspace apps/agent",
     "dashboard": "npm run dev --workspace apps/dashboard",
+    "mcp": "npm run dev --workspace apps/mcp",
     "gen:wallets": "node scripts/gen-wallets.mjs",
     "typecheck": "npm run typecheck --workspaces --if-present"
   },

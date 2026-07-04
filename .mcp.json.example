@@ -1,5 +1,10 @@
 {
   "mcpServers": {
+    "striker": {
+      "command": "npx",
+      "args": ["tsx", "apps/mcp/src/server.ts"],
+      "cwd": "."
+    },
     "injective": {
       "command": "node",
       "args": ["/path/to/injective-mcp-server/dist/mcp/server.js"],

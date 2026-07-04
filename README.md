@@ -66,12 +66,19 @@ the destination domain are env-configured against
 [Circle's docs](https://developers.circle.com/cctp). Sim mode models the
 burn → attest → mint lifecycle with the same ledger events.
 
-### MCP Server — wallet ops for agents
-Ops on STRIKER's wallet (balances, funding, moving earnings, bridging) are
-done through the official [Injective MCP Server](https://github.com/InjectiveLabs/mcp-server)
-from Claude — config in [`.mcp.json.example`](.mcp.json.example), workflow in
-the [Agent Skill](skills/worldcup-analyst/SKILL.md). The skill explicitly
-routes wallet operations to MCP tools rather than hand-rolled RPC.
+### MCP Server — STRIKER is one, and pairs with Injective's
+- **STRIKER ships its own MCP server** ([`apps/mcp`](apps/mcp/src/server.ts)):
+  any MCP client — Claude Code, Claude Desktop, Cursor — gets `get_scoreboard`,
+  `get_track_record`, `get_agent_state` for free, and `buy_insight` /
+  `buy_deep_analytics` that complete a **real x402 payment cycle from inside a
+  tool call** and return the settlement receipt (tx hash + payer) with the
+  data. Connect it with [`.mcp.json.example`](.mcp.json.example) or run
+  `npm run mcp`.
+- **Wallet ops go through the official [Injective MCP Server](https://github.com/InjectiveLabs/mcp-server)**
+  (balances, funding, moving earnings, bridging) — config in the same
+  `.mcp.json.example`, workflow in the
+  [Agent Skill](skills/worldcup-analyst/SKILL.md), which explicitly routes
+  wallet operations to MCP tools rather than hand-rolled RPC.
 
 ### Agent Skills — STRIKER as an ecosystem contribution
 [`skills/worldcup-analyst`](skills/worldcup-analyst/SKILL.md) is an
@@ -128,6 +135,7 @@ packages/x402kit/          mode-switchable x402 paywall + buyer (the shared engi
 apps/data-forge/           x402-gated World Cup data API + analytics engine
 apps/agent/                STRIKER: decision loop, brain, storefront, CCTP treasury, ledger, self-grading track record
 apps/dashboard/            React control room: match board, insight stream, payment ledger, P&L
+apps/mcp/                  STRIKER MCP server — x402-paid insight buys as MCP tools
 skills/worldcup-analyst/   installable Agent Skill + x402 payer script
 scripts/gen-wallets.mjs    wallet bootstrap
 ```
