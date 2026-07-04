@@ -28,10 +28,7 @@ services:
       - key: STRIKER_MODE
         value: sim
       - key: FORGE_URL
-        fromService:
-          type: web
-          name: striker-forge
-          envVarKey: RENDER_EXTERNAL_URL
+        value: https://striker-forge.onrender.com
       - key: AGENT_PRIVATE_KEY
         sync: false
       - key: ANTHROPIC_API_KEY
