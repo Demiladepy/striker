@@ -99,8 +99,9 @@ export async function generateInsight(
         .trim();
       const [first, ...rest] = text.split("\n").filter(Boolean);
       if (first && rest.length > 0) {
-        headline = first.trim();
-        body = rest.join(" ").trim();
+        // models sometimes bold the headline despite instructions — render plain
+        headline = first.trim().replace(/\*\*/g, "").replace(/^#+\s*/, "");
+        body = rest.join(" ").trim().replace(/\*\*/g, "");
         engine = "claude";
       } else {
         ({ headline, body } = templateInsight(deep));
