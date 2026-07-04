@@ -8,12 +8,13 @@
  * Payments ride the x402 protocol on Injective EVM testnet (chain 1439).
  */
 import express from "express";
-import { makePaywall, microToUsdc, walletAddress, type SettlementRecord } from "@striker/x402kit";
+import { makePaywall, microToUsdc, walletAddress, x402Cors, type SettlementRecord } from "@striker/x402kit";
 import { CONFIG } from "./config.ts";
 import { getMatch, getScoreboard } from "./data/provider.ts";
 import { computeDeep } from "./enrich/analytics.ts";
 
 const app = express();
+app.use(x402Cors());
 const bootedAt = new Date().toISOString();
 const stats = { paidRequests: 0, revenueMicro: 0n, lastSettlements: [] as SettlementRecord[] };
 

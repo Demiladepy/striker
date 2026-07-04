@@ -9,7 +9,7 @@
  *        GET /health
  */
 import express from "express";
-import { makePaywall, microToUsdc, type SettlementRecord } from "@striker/x402kit";
+import { makePaywall, microToUsdc, x402Cors, type SettlementRecord } from "@striker/x402kit";
 import { CONFIG } from "./config.ts";
 import { record, recent, totals } from "./ledger.ts";
 import { getBalances, account, privateKey } from "./wallet.ts";
@@ -19,6 +19,7 @@ import { trackRecord } from "./predictions.ts";
 
 export function startStorefront(): void {
   const app = express();
+  app.use(x402Cors());
 
   app.use(
     makePaywall({

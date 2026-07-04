@@ -9,8 +9,8 @@ const mode: "live" | "sim" = process.env.STRIKER_MODE === "live" ? "live" : "sim
 export const CONFIG = {
   mode,
   network: "eip155:1439" as const,
-  port: Number(process.env.AGENT_PORT ?? 4042),
-  forgeUrl: `http://localhost:${process.env.FORGE_PORT ?? 4021}`,
+  port: Number(process.env.PORT ?? process.env.AGENT_PORT ?? 4042),
+  forgeUrl: process.env.FORGE_URL || `http://localhost:${process.env.FORGE_PORT ?? 4021}`,
   agentPrivateKey: (process.env.AGENT_PRIVATE_KEY || undefined) as Hex | undefined,
   anthropicKey: process.env.ANTHROPIC_API_KEY || undefined,
   model: process.env.STRIKER_MODEL || "claude-haiku-4-5-20251001",

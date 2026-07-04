@@ -1,4 +1,5 @@
 export { makePaywall, walletAddress } from "./paywall.ts";
+export { x402Cors } from "./cors.ts";
 export { makeBuyer } from "./buyer.ts";
 export type {
   Buyer,

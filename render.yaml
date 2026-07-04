@@ -1,0 +1,44 @@
+# Render blueprint — deploys the STRIKER backend (Data Forge + agent).
+# One-time setup: dashboard.render.com → New → Blueprint → pick this repo,
+# then fill the sync:false env vars (secrets) in the Render dashboard.
+services:
+  - type: web
+    name: striker-forge
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm run forge
+    envVars:
+      - key: STRIKER_MODE
+        value: sim
+      - key: FOOTBALL_DATA_TOKEN
+        sync: false
+      - key: FORGE_PRIVATE_KEY
+        sync: false
+      - key: REPLAY_SPEED
+        value: "15"
+
+  - type: web
+    name: striker-agent
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm run agent
+    envVars:
+      - key: STRIKER_MODE
+        value: sim
+      - key: FORGE_URL
+        fromService:
+          type: web
+          name: striker-forge
+          envVarKey: RENDER_EXTERNAL_URL
+      - key: AGENT_PRIVATE_KEY
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: STRIKER_MODEL
+        value: claude-haiku-4-5-20251001
+      - key: CCTP_RESERVE_PRIVATE_KEY
+        sync: false
+      - key: CCTP_DEST_DOMAIN
+        value: "29"

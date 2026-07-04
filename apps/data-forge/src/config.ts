@@ -9,7 +9,7 @@ const mode: "live" | "sim" = process.env.STRIKER_MODE === "live" ? "live" : "sim
 export const CONFIG = {
   mode,
   network: "eip155:1439" as const,
-  port: Number(process.env.FORGE_PORT ?? 4021),
+  port: Number(process.env.PORT ?? process.env.FORGE_PORT ?? 4021),
   privateKey: (process.env.FORGE_PRIVATE_KEY || undefined) as Hex | undefined,
   footballDataToken: process.env.FOOTBALL_DATA_TOKEN || undefined,
   replaySpeed: Math.max(1, Number(process.env.REPLAY_SPEED ?? 15)),

@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import type { AgentState, Call, Insight, LedgerEntry, MatchSummary, Outcome, SignalsSnapshot, TrackRecord } from "./types";
 
 const EXPLORER = "https://testnet.blockscout.injective.network/tx/";
+/** Deployed: set VITE_AGENT_URL to the agent's public URL. Local: vite proxy. */
+const AGENT_BASE = import.meta.env.VITE_AGENT_URL ?? "/agent";
 
 const usdc = (micro: string) => (Number(micro) / 1_000_000).toFixed(2);
 const clock = (ts: number) =>
@@ -214,7 +216,7 @@ export default function App() {
     let cancelled = false;
     const poll = async () => {
       try {
-        const res = await fetch("/agent/api/state");
+        const res = await fetch(`${AGENT_BASE}/api/state`);
         if (!res.ok) throw new Error(`agent responded ${res.status}`);
         const next = (await res.json()) as AgentState;
         if (!cancelled) {
