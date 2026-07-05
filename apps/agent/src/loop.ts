@@ -51,6 +51,7 @@ const buyer = makeBuyer({ mode: CONFIG.mode, network: CONFIG.network, privateKey
 
 const insights: Insight[] = [];
 const lastBuyAt = new Map<string, number>();
+const lastBuyMinute = new Map<string, number>();
 const lastScore = new Map<string, string>();
 let latestBoard: ScoreboardResponse | undefined;
 let latestSignals: SignalsSnapshot | undefined;
@@ -81,6 +82,8 @@ function shouldBuyDeep(match: MatchSummary, now: number, liveCount: number): str
   const score = `${match.homeScore}-${match.awayScore}`;
   const previous = lastScore.get(match.id);
   if (previous !== undefined && previous !== score) return `GOAL — score moved ${previous} → ${score}`;
+  // a frozen clock (halftime, stale feed) means identical data — never re-buy it
+  if (match.minute === lastBuyMinute.get(match.id)) return undefined;
   if (match.minute >= 80) return `endgame — ${match.minute}' with the match in the balance`;
   // solo live game: no signal sheet economics — fall back to scheduled deep refresh
   if (liveCount === 1 && now - last > CONFIG.buyCooldownMs * 2) {
@@ -133,6 +136,7 @@ async function buyDeep(match: MatchSummary, reason: string, now: number): Promis
     return;
   }
   lastBuyAt.set(match.id, now);
+  lastBuyMinute.set(match.id, match.minute);
   const receipt = buyer.lastReceipt(res);
   const deep = (await res.json()) as DeepPayload;
   await publishInsight(deep, reason, "deep", CONFIG.forgePrices.deep, receipt);
@@ -202,6 +206,7 @@ async function scoutWithSignals(live: MatchSummary[], now: number): Promise<void
   }
 
   lastBuyAt.set(deep.matchId, now);
+  lastBuyMinute.set(deep.matchId, deep.minute);
   await publishInsight(
     deep,
     `pressure ${deep.pressureIndex}/100 — cross-match scout`,
