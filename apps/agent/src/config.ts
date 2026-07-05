@@ -6,12 +6,25 @@ config({ path: fileURLToPath(new URL("../../../.env", import.meta.url)) });
 
 const mode: "live" | "sim" = process.env.STRIKER_MODE === "live" ? "live" : "sim";
 
+/** Tolerate copy-paste artifacts in secret envs: quotes, whitespace, missing 0x. */
+function cleanKey(raw: string | undefined): Hex | undefined {
+  if (!raw) return undefined;
+  const trimmed = raw.trim().replace(/^["']|["']$/g, "");
+  if (!trimmed) return undefined;
+  const hex = trimmed.startsWith("0x") ? trimmed : `0x${trimmed}`;
+  if (!/^0x[0-9a-fA-F]{64}$/.test(hex)) {
+    console.error(`[config] a private key env var is malformed (length ${trimmed.length}) — check for typos`);
+    return undefined;
+  }
+  return hex as Hex;
+}
+
 export const CONFIG = {
   mode,
   network: "eip155:1439" as const,
   port: Number(process.env.PORT ?? process.env.AGENT_PORT ?? 4042),
   forgeUrl: process.env.FORGE_URL || `http://localhost:${process.env.FORGE_PORT ?? 4021}`,
-  agentPrivateKey: (process.env.AGENT_PRIVATE_KEY || undefined) as Hex | undefined,
+  agentPrivateKey: cleanKey(process.env.AGENT_PRIVATE_KEY),
   rpcUrl: process.env.INJECTIVE_RPC_URL || undefined,
   anthropicKey: process.env.ANTHROPIC_API_KEY || undefined,
   model: process.env.STRIKER_MODEL || "claude-haiku-4-5-20251001",
@@ -34,7 +47,7 @@ export const CONFIG = {
     pressureMin: Number(process.env.SIGNALS_PRESSURE_MIN ?? 55),
   },
   treasury: {
-    reserveKey: (process.env.CCTP_RESERVE_PRIVATE_KEY || undefined) as Hex | undefined,
+    reserveKey: cleanKey(process.env.CCTP_RESERVE_PRIVATE_KEY),
     sourceRpc: process.env.CCTP_SOURCE_RPC || "https://ethereum-sepolia-rpc.publicnode.com",
     tokenMessenger: (process.env.CCTP_TOKEN_MESSENGER || "0x8FE6B999Dc680CcFDD5Bf7EB0974218be2542DAA") as Hex,
     sourceUsdc: (process.env.CCTP_SOURCE_USDC || "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238") as Hex,

@@ -1,24 +1,24 @@
 /**
- * STRIKER — the self-funding AI World Cup analyst on Injective.
- *
- *   buys data   → x402 micropayments to the Data Forge (Injective EVM 1439)
- *   thinks      → Claude (or the built-in template analyst)
- *   sells alpha → its own x402 storefront
- *   stays solvent → CCTP v2 top-ups from a reserve chain
+ * Entry shim: register fatal-error logging BEFORE any module loads, then boot.
+ * Guarantees a readable stack in hosted logs (Render, Railway) instead of a
+ * bare "exited with status 1" when boot-time config is wrong.
  */
-import { CONFIG } from "./config.ts";
-import { account } from "./wallet.ts";
-import { startLoop } from "./loop.ts";
-import { startStorefront } from "./storefront.ts";
+process.on("uncaughtException", (err) => {
+  console.error(`[striker] FATAL uncaught exception: ${err.stack ?? err.message}`);
+  process.exit(1);
+});
+process.on("unhandledRejection", (reason) => {
+  console.error(`[striker] FATAL unhandled rejection: ${reason instanceof Error ? reason.stack : String(reason)}`);
+  process.exit(1);
+});
 
-console.log(`
-   ███████ STRIKER ███████
-   self-funding AI World Cup analyst
-   wallet   ${account.address}
-   mode     ${CONFIG.mode.toUpperCase()}${CONFIG.mode === "sim" ? " (real signatures, simulated settlement — fund wallets + set STRIKER_MODE=live to go on-chain)" : ""}
-   network  ${CONFIG.network} (Injective EVM testnet)
-   brain    ${CONFIG.anthropicKey ? CONFIG.model : "template analyst (set ANTHROPIC_API_KEY for Claude)"}
-`);
+try {
+  await import("./boot.ts");
+} catch (err) {
+  console.error(
+    `[striker] FATAL boot failure: ${err instanceof Error ? (err.stack ?? err.message) : String(err)}`,
+  );
+  process.exit(1);
+}
 
-startStorefront();
-startLoop();
+export {};
