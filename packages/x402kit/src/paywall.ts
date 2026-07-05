@@ -79,9 +79,13 @@ export function makePaywall(options: PaywallOptions): RequestHandler {
         },
       ]),
     );
+    // "before" (verify → settle → handler): the rc.1 "after-success" path
+    // re-emits the response without HTTP framing (raw JSON on the socket, no
+    // status line), which strict clients like undici reject. Our paid routes
+    // are read-only lookups, so charging before the handler is safe.
     const inner = injectivePaymentMiddleware(routeMap, {
-      facilitator: { privateKey: key },
-      settlementPolicy: "after-success",
+      facilitator: { privateKey: key, rpcUrl: options.rpcUrl },
+      settlementPolicy: "before",
     });
     // Wrap to ledger earnings off the receipt header once the response flushes.
     return (req: Request, res: Response, next: NextFunction) => {

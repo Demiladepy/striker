@@ -31,6 +31,7 @@ const buyer = makeBuyer({
   privateKey: (process.env.STRIKER_PAYER_KEY || process.env.AGENT_PRIVATE_KEY || undefined) as
     | Hex
     | undefined,
+  rpcUrl: process.env.INJECTIVE_RPC_URL || undefined,
 });
 
 function asText(payload: unknown): { content: Array<{ type: "text"; text: string }> } {

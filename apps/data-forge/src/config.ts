@@ -11,6 +11,7 @@ export const CONFIG = {
   network: "eip155:1439" as const,
   port: Number(process.env.PORT ?? process.env.FORGE_PORT ?? 4021),
   privateKey: (process.env.FORGE_PRIVATE_KEY || undefined) as Hex | undefined,
+  rpcUrl: process.env.INJECTIVE_RPC_URL || undefined,
   footballDataToken: process.env.FOOTBALL_DATA_TOKEN || undefined,
   replaySpeed: Math.max(1, Number(process.env.REPLAY_SPEED ?? 15)),
   prices: {

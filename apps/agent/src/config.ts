@@ -12,6 +12,7 @@ export const CONFIG = {
   port: Number(process.env.PORT ?? process.env.AGENT_PORT ?? 4042),
   forgeUrl: process.env.FORGE_URL || `http://localhost:${process.env.FORGE_PORT ?? 4021}`,
   agentPrivateKey: (process.env.AGENT_PRIVATE_KEY || undefined) as Hex | undefined,
+  rpcUrl: process.env.INJECTIVE_RPC_URL || undefined,
   anthropicKey: process.env.ANTHROPIC_API_KEY || undefined,
   model: process.env.STRIKER_MODEL || "claude-haiku-4-5-20251001",
   prices: {

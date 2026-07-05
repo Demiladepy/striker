@@ -23,6 +23,7 @@ app.use(
     mode: CONFIG.mode,
     network: CONFIG.network,
     privateKey: CONFIG.privateKey,
+    rpcUrl: CONFIG.rpcUrl,
     routes: {
       "GET /api/deep": {
         description: "Deep live analytics for one World Cup match (momentum, pressure, win probability, key moments)",

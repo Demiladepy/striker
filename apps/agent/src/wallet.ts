@@ -17,7 +17,7 @@ export const privateKey = key;
 const usdc = getToken(CONFIG.network, "USDC");
 const client = createPublicClient({
   chain: getViemChain(CONFIG.network),
-  transport: http(getRpcUrl(CONFIG.network)),
+  transport: http(CONFIG.rpcUrl ?? getRpcUrl(CONFIG.network)),
 });
 
 export interface Balances {

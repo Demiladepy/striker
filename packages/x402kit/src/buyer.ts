@@ -53,6 +53,7 @@ export function makeBuyer(options: BuyerOptions): Buyer {
     }
     const client = createInjectiveClient({
       privateKey,
+      rpcUrl: options.rpcUrl,
       preferredNetworks: [options.network],
     });
     return {
@@ -77,7 +78,7 @@ export function makeBuyer(options: BuyerOptions): Buyer {
         ?? required.accepts[0];
       if (!requirements) throw new Error(`402 from ${url} offered no payment options`);
 
-      const payload = await createPayment({ privateKey }, requirements);
+      const payload = await createPayment({ privateKey, rpcUrl: options.rpcUrl }, requirements);
       const headers = new Headers(init?.headers);
       headers.set("PAYMENT-SIGNATURE", encodePaymentSignatureHeader(payload));
       return fetch(url, { ...init, headers });

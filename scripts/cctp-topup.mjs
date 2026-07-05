@@ -15,7 +15,7 @@ config();
 
 const AMOUNT = parseUnits(process.argv[2] ?? "10", 6);
 const SRC_RPC = process.env.CCTP_SOURCE_RPC ?? "https://ethereum-sepolia-rpc.publicnode.com";
-const DST_RPC = "https://k8s.testnet.json-rpc.injective.network";
+const DST_RPC = process.env.INJECTIVE_RPC_URL ?? "https://testnet.sentry.chain.json-rpc.injective.network";
 const SRC_USDC = process.env.CCTP_SOURCE_USDC ?? "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238";
 const TOKEN_MESSENGER = process.env.CCTP_TOKEN_MESSENGER ?? "0x8FE6B999Dc680CcFDD5Bf7EB0974218be2542DAA";
 const MESSAGE_TRANSMITTER = process.env.CCTP_DEST_TRANSMITTER ?? "0xE737e5cEBEEBa77EFE34D4aa090756590b1CE275";

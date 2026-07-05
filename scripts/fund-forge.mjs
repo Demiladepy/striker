@@ -6,7 +6,7 @@ import { privateKeyToAccount } from "viem/accounts";
 import { config } from "dotenv";
 config();
 
-const RPC = "https://k8s.testnet.json-rpc.injective.network";
+const RPC = process.env.INJECTIVE_RPC_URL ?? "https://testnet.sentry.chain.json-rpc.injective.network";
 const USDC = "0x0C382e685bbeeFE5d3d9C29e29E341fEE8E84C5d";
 const chain = {
   id: 1439,

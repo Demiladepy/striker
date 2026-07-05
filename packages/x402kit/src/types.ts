@@ -28,6 +28,8 @@ export interface PaywallOptions {
   routes: Record<string, PaywallRouteConfig>;
   /** Facilitator/receiver private key. Required in live mode; optional in sim (ephemeral fallback). */
   privateKey?: Hex;
+  /** Override the network's default RPC (e.g. when its receipt endpoint lags). */
+  rpcUrl?: string;
   /** Called after each successful settlement (live or sim) so the app can ledger earnings. */
   onSettle?: (record: SettlementRecord) => void;
 }
@@ -37,6 +39,8 @@ export interface BuyerOptions {
   network: "eip155:1776" | "eip155:1439";
   /** Payer private key. Required in live mode; optional in sim (ephemeral fallback). */
   privateKey?: Hex;
+  /** Override the network's default RPC. */
+  rpcUrl?: string;
 }
 
 export interface PaidReceipt {

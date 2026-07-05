@@ -26,6 +26,7 @@ export function startStorefront(): void {
       mode: CONFIG.mode,
       network: CONFIG.network,
       privateKey,
+      rpcUrl: CONFIG.rpcUrl,
       routes: {
         "GET /api/insight": {
           description: "STRIKER's freshest World Cup insight — momentum, win probability, and a broadcast-grade read",

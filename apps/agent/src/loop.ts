@@ -47,7 +47,7 @@ export interface SignalsSnapshot {
   }>;
 }
 
-const buyer = makeBuyer({ mode: CONFIG.mode, network: CONFIG.network, privateKey });
+const buyer = makeBuyer({ mode: CONFIG.mode, network: CONFIG.network, privateKey, rpcUrl: CONFIG.rpcUrl });
 
 const insights: Insight[] = [];
 const lastBuyAt = new Map<string, number>();
