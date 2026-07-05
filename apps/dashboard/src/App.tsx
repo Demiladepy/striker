@@ -250,15 +250,62 @@ export default function App() {
 
   return (
     <div className="shell">
-      <header className="topbar">
-        <h1>
-          ⚡ STRIKER <span className="tagline">the self-funding AI World Cup analyst</span>
-        </h1>
+      <nav className="nav">
+        <span className="nav-logo">⚡ STRIKER</span>
+        <div className="nav-links">
+          <a href="#board">Matches</a>
+          <a href="#insights">Insights</a>
+          <a href="#ledger">Ledger</a>
+          <a href="https://github.com/Demiladepy/striker" target="_blank" rel="noreferrer">
+            GitHub
+          </a>
+        </div>
         <div className="badges">
           <span className={`badge mode-${state.agent.mode}`}>
             {state.agent.mode === "live" ? "LIVE · Injective EVM testnet" : "SIM · real signatures, simulated settlement"}
           </span>
           <span className="badge">{state.board?.source === "live" ? "🌍 live World Cup feed" : "🎬 replay slate"}</span>
+        </div>
+      </nav>
+
+      <header className="hero">
+        <p className="eyebrow">
+          BUILT FOR THE INJECTIVE GLOBAL CUP <span className="eyebrow-line" />
+        </p>
+        <h1>
+          The analyst that
+          <br />
+          pays its own way.
+        </h1>
+        <p className="hero-sub">
+          STRIKER buys live World Cup data with x402 micropayments, sells its analysis the same way,
+          and refills its treasury cross-chain — every settlement on-chain, no human in the loop.
+        </p>
+        <div className="hero-cta">
+          <a className="btn-pill" href="https://github.com/Demiladepy/striker" target="_blank" rel="noreferrer">
+            View the code
+          </a>
+          <a className="btn-play" href="#ledger">
+            <span className="play-circle">▶</span> Watch the ledger live
+          </a>
+        </div>
+        <div className="hero-stats">
+          <div>
+            <strong>{state.balances.usdcBalance.toFixed(2)}</strong>
+            <span>USDC in its wallet</span>
+          </div>
+          <div>
+            <strong>{state.book.entryCount}</strong>
+            <span>settlements recorded</span>
+          </div>
+          <div>
+            <strong>{state.insights.length}</strong>
+            <span>insights published</span>
+          </div>
+          <div>
+            <strong>{live.length}</strong>
+            <span>matches live now</span>
+          </div>
         </div>
       </header>
 
@@ -320,7 +367,7 @@ export default function App() {
 
       <main className="grid">
         <div className="side-col">
-          <section className="panel">
+          <section className="panel" id="board">
             <h2>
               match board <span className="muted">({live.length} live)</span>
             </h2>
@@ -332,7 +379,7 @@ export default function App() {
           <SignalRadar signals={state.signals} signalsUsdc={state.prices.signalsUsdc} />
         </div>
 
-        <section className="panel wide">
+        <section className="panel wide" id="insights">
           <h2>insight stream — {state.prices.insightUsdc} USDC per full read via x402</h2>
           <div className="insights">
             {state.insights.length === 0 ? (
@@ -345,7 +392,7 @@ export default function App() {
 
         <TrackRecordPanel tr={state.trackRecord} />
 
-        <section className="panel full">
+        <section className="panel full" id="ledger">
           <h2>payment ledger — every x402, stake, and CCTP settlement</h2>
           <table>
             <thead>
@@ -366,8 +413,65 @@ export default function App() {
         </section>
       </main>
 
-      <footer className="foot">
-        built on Injective — x402 micropayments · CCTP treasury · MCP server ops · shipped as an Agent Skill
+      <footer className="mega-foot">
+        <div className="foot-inner">
+          <div className="foot-brand">
+            <span className="nav-logo">⚡ STRIKER</span>
+            <p>
+              A self-funding AI World Cup analyst on Injective. It buys the data, sells the take,
+              and settles every cent on-chain — x402, CCTP, MCP Server, Agent Skills.
+            </p>
+          </div>
+          <div className="foot-grid">
+            <div className="foot-col">
+              <h4>Agent</h4>
+              <span className="mono">{state.agent.address.slice(0, 20)}…</span>
+              <a
+                href={`https://testnet.blockscout.injective.network/address/${state.agent.address}`}
+                target="_blank"
+                rel="noreferrer"
+              >
+                Wallet on Blockscout
+              </a>
+              <span>{state.agent.network} · Injective EVM</span>
+            </div>
+            <div className="foot-col">
+              <h4>Protocol</h4>
+              <a href="https://docs.injective.network/developers-ai/x402" target="_blank" rel="noreferrer">
+                x402 on Injective
+              </a>
+              <a href="https://developers.circle.com/cctp" target="_blank" rel="noreferrer">
+                Circle CCTP
+              </a>
+              <a href="https://github.com/InjectiveLabs/mcp-server" target="_blank" rel="noreferrer">
+                Injective MCP Server
+              </a>
+            </div>
+            <div className="foot-col">
+              <h4>Navigate</h4>
+              <a href="#board">Match board</a>
+              <a href="#insights">Insight stream</a>
+              <a href="#ledger">Payment ledger</a>
+            </div>
+          </div>
+          <div className="foot-social">
+            <a href="https://github.com/Demiladepy/striker" target="_blank" rel="noreferrer">
+              GITHUB <span>↗</span>
+            </a>
+            <a href="https://x.com/injective" target="_blank" rel="noreferrer">
+              X / TWITTER <span>↗</span>
+            </a>
+            <a href="https://injective.com" target="_blank" rel="noreferrer">
+              INJECTIVE <span>↗</span>
+            </a>
+            <a href="https://testnet.blockscout.injective.network" target="_blank" rel="noreferrer">
+              BLOCKSCOUT <span>↗</span>
+            </a>
+          </div>
+        </div>
+        <div className="foot-watermark" aria-hidden="true">
+          STRIKER
+        </div>
       </footer>
     </div>
   );
