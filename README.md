@@ -7,6 +7,10 @@
 
 **Built for the [Injective Global Cup](https://xsxo494365r.typeform.com/to/TMaGb1du) · July 3–19, 2026**
 
+**🔴 Live demo: [striker-three.vercel.app](https://striker-three.vercel.app)** — the deployed
+agent runs in sim mode (real EIP-3009 signatures, simulated settlement) against the real
+World Cup 2026 feed. First load can take ~50s while the free-tier backend wakes up.
+
 ---
 
 ## The problem
