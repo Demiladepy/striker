@@ -57,14 +57,23 @@ async function fetchLive(token: string): Promise<Scoreboard> {
     };
   });
 
-  // Surface live + today's matches first, cap payload size.
-  const rank = (s: MatchState) => (s.status === "LIVE" ? 0 : s.status === "SCHEDULED" ? 1 : 2);
-  matches.sort((a, b) => rank(a) - rank(b) || a.kickoff.localeCompare(b.kickoff));
+  // Board policy: live first, then RECENT full-time results (the agent grades
+  // its calls off FT scorelines — they must not rotate out), then upcoming.
+  // Placeholder fixtures (TBD vs TBD) never earn a slot.
+  const now = Date.now();
+  const RECENT_FT_MS = 36 * 3_600_000;
+  const visible = matches.filter(
+    (m) =>
+      (m.home !== "TBD" || m.away !== "TBD") &&
+      (m.status !== "FT" || now - Date.parse(m.kickoff) < RECENT_FT_MS),
+  );
+  const rank = (s: MatchState) => (s.status === "LIVE" ? 0 : s.status === "FT" ? 1 : 2);
+  visible.sort((a, b) => rank(a) - rank(b) || a.kickoff.localeCompare(b.kickoff));
 
   return {
     source: "live",
     competition: "FIFA World Cup 2026",
-    matches: matches.slice(0, 12),
+    matches: visible.slice(0, 12),
     fetchedAt: new Date().toISOString(),
   };
 }
