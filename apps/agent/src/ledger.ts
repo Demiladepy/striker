@@ -2,10 +2,11 @@
  * STRIKER's book of record: every micro-payment in and out, with tx hashes.
  * In-memory for the dashboard + appended to .striker/ledger.jsonl for audit.
  */
-import { appendFileSync, mkdirSync } from "node:fs";
+import { appendFileSync, existsSync, mkdirSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 import { microToUsdc } from "@striker/x402kit";
+import { CONFIG } from "./config.ts";
 
 export interface LedgerEntry {
   ts: number;
@@ -24,6 +25,31 @@ mkdirSync(dataDir, { recursive: true });
 const ledgerFile = join(dataDir, "ledger.jsonl");
 
 const entries: LedgerEntry[] = [];
+
+// Reload history so a restart never blanks the dashboard's payment record.
+// In live mode, sim-era rows are excluded so the book never mixes simulated
+// money into real P&L (stakes stay — they are model-internal by design).
+try {
+  if (existsSync(ledgerFile)) {
+    const lines = readFileSync(ledgerFile, "utf8").split("\n").filter(Boolean);
+    for (const line of lines.slice(-1000)) {
+      try {
+        const entry = JSON.parse(line) as LedgerEntry;
+        const modeConsistent =
+          CONFIG.mode === "sim" ||
+          !entry.simulated ||
+          entry.kind === "stake" ||
+          entry.kind === "stake_win";
+        if (modeConsistent) entries.push(entry);
+      } catch {
+        /* skip torn line */
+      }
+    }
+    if (entries.length > 0) console.log(`[ledger] reloaded ${entries.length} entries from disk`);
+  }
+} catch (err) {
+  console.error(`[ledger] reload failed (${String(err)}) — starting empty`);
+}
 
 export function record(entry: LedgerEntry): void {
   entries.push(entry);

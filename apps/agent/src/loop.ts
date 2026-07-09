@@ -15,6 +15,7 @@ import { privateKey } from "./wallet.ts";
 import { checkTreasury } from "./treasury.ts";
 import { getBalances } from "./wallet.ts";
 import { gradeBoard, registerCall } from "./predictions.ts";
+import { loadSnapshot, saveSnapshot } from "./persist.ts";
 
 interface MatchSummary {
   id: string;
@@ -49,7 +50,8 @@ export interface SignalsSnapshot {
 
 const buyer = makeBuyer({ mode: CONFIG.mode, network: CONFIG.network, privateKey, rpcUrl: CONFIG.rpcUrl });
 
-const insights: Insight[] = [];
+const insights: Insight[] = loadSnapshot<Insight[]>("insights", []);
+if (insights.length > 0) console.log(`[striker] reloaded ${insights.length} insights from disk`);
 const lastBuyAt = new Map<string, number>();
 const lastBuyMinute = new Map<string, number>();
 const lastScore = new Map<string, string>();
@@ -121,6 +123,7 @@ async function publishInsight(
   });
   insights.push(insight);
   if (insights.length > 500) insights.splice(0, insights.length - 500);
+  saveSnapshot("insights", insights);
   registerCall(deep, insight);
   const tag = source === "signals" ? "📡" : "🧠";
   console.log(

@@ -1,0 +1,16 @@
+# Keeps the free-tier Render services from spinning down, so judges never hit
+# a 50-second cold start on the public demo.
+name: keep-warm
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping STRIKER services
+        run: |
+          curl -sf -m 90 https://striker-forge.onrender.com/health || echo "forge cold/failed"
+          curl -sf -m 90 https://striker-agent.onrender.com/health || echo "agent cold/failed"

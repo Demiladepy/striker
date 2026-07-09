@@ -6,6 +6,15 @@
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dashboard"],
       "port": 5173
+    },
+    {
+      "name": "stipend-dev",
+      "runtimeExecutable": "cmd",
+      "runtimeArgs": [
+        "/c",
+        "cd /d C:\\Users\\User\\Desktop\\nibiru\\stipend && npx next dev -p 3999"
+      ],
+      "port": 3999
     }
   ]
 }

@@ -10,7 +10,7 @@ services:
     startCommand: npm run forge
     envVars:
       - key: STRIKER_MODE
-        value: sim
+        value: live
       - key: FOOTBALL_DATA_TOKEN
         sync: false
       - key: FORGE_PRIVATE_KEY
@@ -28,7 +28,7 @@ services:
     startCommand: npm run agent
     envVars:
       - key: STRIKER_MODE
-        value: sim
+        value: live
       - key: FORGE_URL
         value: https://striker-forge.onrender.com
       - key: AGENT_PRIVATE_KEY

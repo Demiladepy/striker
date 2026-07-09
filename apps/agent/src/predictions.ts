@@ -9,6 +9,7 @@
  */
 import { randomBytes } from "node:crypto";
 import { microToUsdc, usdcToMicro } from "@striker/x402kit";
+import { loadSnapshot, saveSnapshot } from "./persist.ts";
 import type { DeepPayload, Insight } from "./brain.ts";
 import { CONFIG } from "./config.ts";
 import { record } from "./ledger.ts";
@@ -71,7 +72,8 @@ export interface TrackRecord {
 
 const UNINFORMED_BRIER = 2 * (1 / 3) ** 2 + (2 / 3) ** 2;
 
-const calls: Call[] = [];
+const calls: Call[] = loadSnapshot<Call[]>("calls", []);
+if (calls.length > 0) console.log(`[predictions] reloaded ${calls.length} calls from disk`);
 
 function favoredOutcome(p: { home: number; draw: number; away: number }): Outcome {
   if (p.home >= p.draw && p.home >= p.away) return "home";
@@ -145,6 +147,7 @@ export function registerCall(deep: DeepPayload, insight: Insight): void {
   maybeStake(call, favored, deep, insight);
   calls.push(call);
   if (calls.length > 1000) calls.splice(0, calls.length - 1000);
+  saveSnapshot("calls", calls);
 }
 
 interface FinishableMatch {
@@ -171,6 +174,7 @@ export function gradeBoard(matches: FinishableMatch[]): void {
       m.homeScore > m.awayScore ? "home" : m.awayScore > m.homeScore ? "away" : "draw";
     finished.set(m.id, { result, finalScore: `${m.homeScore}-${m.awayScore}` });
   }
+  let changed = false;
   for (const call of calls) {
     if (call.graded) continue;
     const fin = finished.get(call.matchId);
@@ -181,7 +185,9 @@ export function gradeBoard(matches: FinishableMatch[]): void {
     call.correct = call.favored === fin.result;
     call.brier = Number(brierScore(call.winProb, fin.result).toFixed(4));
     settleStake(call);
+    changed = true;
   }
+  if (changed) saveSnapshot("calls", calls);
 }
 
 function stakesSummary(): StakesSummary {
