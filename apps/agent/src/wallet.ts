@@ -28,24 +28,33 @@ export interface Balances {
   network: string;
 }
 
+let lastKnown: Balances | undefined;
+
 export async function getBalances(): Promise<Balances> {
   if (CONFIG.mode === "live" && usdc) {
-    const [usdcRaw, injRaw] = await Promise.all([
-      client.readContract({
-        address: usdc.address,
-        abi: erc20Abi,
-        functionName: "balanceOf",
-        args: [account.address],
-      }),
-      client.getBalance({ address: account.address }),
-    ]);
-    return {
-      address: account.address,
-      usdcBalance: Number(formatUnits(usdcRaw, usdc.decimals)),
-      injBalance: Number(formatEther(injRaw)),
-      mode: "live",
-      network: CONFIG.network,
-    };
+    try {
+      const [usdcRaw, injRaw] = await Promise.all([
+        client.readContract({
+          address: usdc.address,
+          abi: erc20Abi,
+          functionName: "balanceOf",
+          args: [account.address],
+        }),
+        client.getBalance({ address: account.address }),
+      ]);
+      lastKnown = {
+        address: account.address,
+        usdcBalance: Number(formatUnits(usdcRaw, usdc.decimals)),
+        injBalance: Number(formatEther(injRaw)),
+        mode: "live",
+        network: CONFIG.network,
+      };
+      return lastKnown;
+    } catch (err) {
+      // transient RPC failure: serve the last on-chain read instead of throwing
+      if (lastKnown) return lastKnown;
+      throw err;
+    }
   }
   const book = totals();
   return {

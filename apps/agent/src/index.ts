@@ -7,9 +7,10 @@ process.on("uncaughtException", (err) => {
   console.error(`[striker] FATAL uncaught exception: ${err.stack ?? err.message}`);
   process.exit(1);
 });
+// Log-only: a stray rejection (transient RPC outage, dropped socket) must not
+// kill a long-running agent. Boot failures are covered by the import guard.
 process.on("unhandledRejection", (reason) => {
-  console.error(`[striker] FATAL unhandled rejection: ${reason instanceof Error ? reason.stack : String(reason)}`);
-  process.exit(1);
+  console.error(`[striker] unhandled rejection (continuing): ${reason instanceof Error ? reason.stack : String(reason)}`);
 });
 
 try {

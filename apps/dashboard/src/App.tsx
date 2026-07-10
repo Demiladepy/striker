@@ -268,7 +268,23 @@ export default function App() {
         </div>
       </nav>
 
+      <div className="ticker" aria-hidden="true">
+        <div className="ticker-track">
+          {[...state.ledger.slice(0, 14), ...state.ledger.slice(0, 14)].map((entry, i) => (
+            <span key={i} className={`tick ${entry.kind}`}>
+              {entry.kind === "spend" || entry.kind === "stake" ? "−" : "+"}
+              {usdc(entry.amountMicro)} USDC · {entry.purpose.split(" · ")[0]}
+            </span>
+          ))}
+        </div>
+      </div>
+
       <header className="hero">
+        <div className="hero-media" aria-hidden="true">
+          <video autoPlay muted loop playsInline preload="metadata" src="/hero.mp4" />
+          <div className="hero-veil" />
+        </div>
+        <div className="hero-inner">
         <p className="eyebrow">
           BUILT FOR THE INJECTIVE GLOBAL CUP <span className="eyebrow-line" />
         </p>
@@ -306,6 +322,7 @@ export default function App() {
             <strong>{live.length}</strong>
             <span>matches live now</span>
           </div>
+        </div>
         </div>
       </header>
 

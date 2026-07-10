@@ -83,6 +83,14 @@ export function startStorefront(): void {
   });
 
   app.get("/api/state", async (_req, res) => {
+    try {
+      await sendState(res);
+    } catch (err) {
+      res.status(503).json({ error: `state temporarily unavailable: ${String(err)}` });
+    }
+  });
+
+  async function sendState(res: express.Response): Promise<void> {
     res.json({
       agent: {
         name: "STRIKER",
@@ -106,7 +114,7 @@ export function startStorefront(): void {
         signalsUsdc: microToUsdc(CONFIG.forgePrices.signals),
       },
     });
-  });
+  }
 
   app.listen(CONFIG.port, () => {
     console.log(`⚡ STRIKER storefront on http://localhost:${CONFIG.port}  mode=${CONFIG.mode}`);
