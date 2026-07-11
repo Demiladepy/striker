@@ -187,6 +187,9 @@ body::before {
 
 /* ─── panels ──────────────────────────────────────────────────────────── */
 .grid { display: grid; grid-template-columns: 340px 1fr; gap: 14px; scroll-margin-top: 20px; }
+/* grid children must be allowed to shrink below content width (table min-width
+   would otherwise blow the whole page out past small viewports) */
+.grid > *, .side-col > * { min-width: 0; }
 .side-col { display: grid; gap: 14px; align-content: start; }
 .panel {
   background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 18px;
@@ -336,9 +339,81 @@ tr.spend .amount, tr.stake .amount { color: var(--neg); font-weight: 700; }
   pointer-events: none;
 }
 
+/* ─── prediction markets (Polymarket-style) ───────────────────────────── */
+.markets {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(310px, 1fr)); gap: 12px;
+}
+.market {
+  border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px;
+  background: var(--panel-2); display: grid; gap: 12px; align-content: start;
+  transition: border-color 0.15s, transform 0.15s;
+}
+.market:hover { border-color: #2c3a66; transform: translateY(-2px); }
+.market.live { border-color: #7c2d3e; }
+.market header { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.market-q { font-family: var(--display); font-weight: 600; font-size: 0.98rem; }
+.market-resolved {
+  font-size: 0.68rem; font-weight: 700; letter-spacing: 0.1em;
+  color: var(--pos); border: 1px solid #1d6b50; border-radius: 999px; padding: 2px 9px;
+}
+.market-outcomes { display: grid; gap: 8px; }
+.outcome {
+  display: grid; grid-template-columns: minmax(72px, auto) 1fr 52px;
+  align-items: center; gap: 10px;
+}
+.outcome-name { font-size: 0.86rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.outcome.dead { opacity: 0.38; }
+.outcome-track { height: 7px; border-radius: 999px; background: #1a2238; overflow: hidden; }
+.outcome-bar {
+  display: block; height: 100%; border-radius: 999px;
+  background: linear-gradient(90deg, #2563eb, var(--accent));
+  transition: width 0.6s ease;
+}
+.outcome.leading .outcome-bar { background: linear-gradient(90deg, #059669, var(--pos)); }
+.outcome-price {
+  font-family: Consolas, "Cascadia Code", monospace; font-variant-numeric: tabular-nums;
+  font-size: 0.86rem; font-weight: 700; text-align: right; color: var(--muted);
+  border: 1px solid var(--line); border-radius: 8px; padding: 3px 7px; background: #0b0f1d;
+}
+.outcome-price.up { color: var(--pos); border-color: #1d6b50; }
+.market footer { font-size: 0.75rem; color: var(--muted); }
+.market-pos { font-weight: 600; color: var(--gold); }
+.market-pos.pos { color: var(--pos); }
+.market-pos.neg { color: var(--neg); }
+
+.table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.table-scroll table { min-width: 640px; }
+
+/* ─── responsive ──────────────────────────────────────────────────────── */
 @media (max-width: 900px) {
   .grid { grid-template-columns: 1fr; }
-  .hero { padding-top: 40px; }
+  .hero-inner { padding: 56px 20px 48px; }
   .hero-stats > div { padding: 0 18px 0 0; border-left: none; }
   .foot-col { padding-left: 0; border-left: none; border-top: 1px solid #ffffff14; }
+}
+
+@media (max-width: 640px) {
+  .shell { padding: 0 16px; }
+  .nav { gap: 12px; padding: 14px 0; }
+  .nav-links { display: none; }
+  .badges { flex: 1; justify-content: flex-end; }
+  .badge { font-size: 0.64rem; padding: 4px 10px; }
+  .ticker, .hero, .mega-foot { margin-left: -16px; margin-right: -16px; }
+  .hero-inner { padding: 44px 16px 40px; }
+  .hero h1 { font-size: clamp(2.3rem, 11.5vw, 3.2rem); }
+  .hero-sub { font-size: 0.95rem; }
+  .hero-cta { gap: 16px; margin-bottom: 40px; }
+  .btn-pill { padding: 12px 22px; font-size: 0.88rem; }
+  .hero-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 16px 8px; }
+  .hero-stats > div { padding: 0; border-left: none; }
+  .hero-stats strong { font-size: 1.7rem; }
+  .stats { grid-template-columns: 1fr 1fr; }
+  .panel { padding: 14px; }
+  .insight header { flex-direction: column; align-items: flex-start; gap: 2px; }
+  .insight footer { flex-direction: column; align-items: flex-start; }
+  .tr-brier { margin-left: 0; }
+  .markets { grid-template-columns: 1fr; }
+  .foot-inner { padding: 40px 16px 0; }
+  .foot-social a { padding: 13px 14px; font-size: 0.62rem; }
+  .foot-watermark { font-size: clamp(3.6rem, 22vw, 6rem); }
 }

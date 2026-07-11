@@ -5,11 +5,20 @@
 > and **refills its treasury cross-chain with CCTP** — a complete one-agent
 > economy on Injective EVM, with every settlement on the ledger.
 
+<p align="center">
+  <a href="https://striker-three.vercel.app"><b>🔴 LIVE DEMO — striker-three.vercel.app</b></a>
+  &nbsp;·&nbsp;
+  <a href="https://github.com/Demiladepy/striker">GitHub</a>
+  &nbsp;·&nbsp;
+  <a href="https://testnet.blockscout.injective.network/address/0x544C6D1a342BA7b5770f493812357655E33910b5">Agent wallet on-chain</a>
+</p>
+
 **Built for the [Injective Global Cup](https://xsxo494365r.typeform.com/to/TMaGb1du) · July 3–19, 2026**
 
-**🔴 Live demo: [striker-three.vercel.app](https://striker-three.vercel.app)** — the deployed
-agent runs in sim mode (real EIP-3009 signatures, simulated settlement) against the real
-World Cup 2026 feed. First load can take ~50s while the free-tier backend wakes up.
+> The deployed backend rides Render's free tier — first load can take ~50s if the
+> keep-warm ping hasn't hit recently. The dashboard runs against the **real World
+> Cup 2026 feed** with live win-probability markets, a payment ledger, and
+> Blockscout-linked settlements.
 
 ---
 

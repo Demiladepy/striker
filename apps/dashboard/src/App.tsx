@@ -190,6 +190,95 @@ function TrackRecordPanel({ tr }: { tr: TrackRecord }) {
   );
 }
 
+/** Polymarket-style market board — outcomes priced by STRIKER's live model. */
+function MarketBoard({
+  matches,
+  signals,
+  calls,
+}: {
+  matches: MatchSummary[];
+  signals: SignalsSnapshot | null;
+  calls: Call[];
+}) {
+  const priceFor = (matchId: string) => signals?.matches.find((m) => m.matchId === matchId)?.winProb;
+  const positionFor = (matchId: string) => calls.find((c) => c.matchId === matchId && c.stakeMicro);
+  const cents = (p: number) => `${Math.round(p * 100)}¢`;
+
+  const cards = matches.filter((m) => m.status !== "FT" || m.homeScore + m.awayScore > 0).slice(0, 6);
+  if (cards.length === 0) return null;
+
+  return (
+    <section className="panel full" id="markets">
+      <h2>prediction markets — outcomes priced by STRIKER&apos;s paid model reads</h2>
+      <div className="markets">
+        {cards.map((m) => {
+          const prob = priceFor(m.id);
+          const pos = positionFor(m.id);
+          const result: Outcome | undefined =
+            m.status === "FT"
+              ? m.homeScore > m.awayScore
+                ? "home"
+                : m.awayScore > m.homeScore
+                  ? "away"
+                  : "draw"
+              : undefined;
+          const outcomes: Array<{ key: Outcome; label: string; p?: number }> = [
+            { key: "home", label: m.home, p: prob?.home },
+            { key: "draw", label: "Draw", p: prob?.draw },
+            { key: "away", label: m.away, p: prob?.away },
+          ];
+          const best = prob ? Math.max(prob.home, prob.draw, prob.away) : undefined;
+          return (
+            <article key={m.id} className={`market ${m.status.toLowerCase()}`}>
+              <header>
+                <span className="market-q">
+                  {m.home} vs {m.away}
+                </span>
+                {m.status === "LIVE" ? (
+                  <span className="live-dot">● {m.minute}&apos;</span>
+                ) : m.status === "FT" ? (
+                  <span className="market-resolved">RESOLVED {m.homeScore}–{m.awayScore}</span>
+                ) : (
+                  <span className="muted">opens at kickoff</span>
+                )}
+              </header>
+              <div className="market-outcomes">
+                {outcomes.map((o) => {
+                  const price = result ? (result === o.key ? 1 : 0) : o.p;
+                  const leading = result ? result === o.key : price !== undefined && price === best;
+                  return (
+                    <div key={o.key} className={`outcome ${leading ? "leading" : ""} ${result && result !== o.key ? "dead" : ""}`}>
+                      <span className="outcome-name">{o.label}</span>
+                      <span className="outcome-track">
+                        <span className="outcome-bar" style={{ width: `${(price ?? 0) * 100}%` }} />
+                      </span>
+                      <span className={`outcome-price ${leading ? "up" : ""}`}>
+                        {price === undefined ? "—" : cents(price)}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+              <footer>
+                {pos ? (
+                  <span className={`market-pos ${pos.stakeSettled ? (pos.correct ? "pos" : "neg") : ""}`}>
+                    STRIKER position: {outcomeLabel(pos, pos.favored)} @ {cents(pos.favoredProb)}
+                    {pos.stakeSettled ? (pos.correct ? " · WON" : " · LOST") : ""}
+                  </span>
+                ) : m.status === "LIVE" && !prob ? (
+                  <span className="muted">awaiting first paid read…</span>
+                ) : (
+                  <span className="muted">prices update with every x402 data buy</span>
+                )}
+              </footer>
+            </article>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
 function LedgerRow({ entry }: { entry: LedgerEntry }) {
   const sign = entry.kind === "spend" || entry.kind === "stake" ? "−" : "+";
   return (
@@ -407,10 +496,17 @@ export default function App() {
           </div>
         </section>
 
+        <MarketBoard
+          matches={state.board?.matches ?? []}
+          signals={state.signals}
+          calls={state.trackRecord.recent}
+        />
+
         <TrackRecordPanel tr={state.trackRecord} />
 
         <section className="panel full" id="ledger">
           <h2>payment ledger — every x402, stake, and CCTP settlement</h2>
+          <div className="table-scroll">
           <table>
             <thead>
               <tr>
@@ -427,6 +523,7 @@ export default function App() {
               ))}
             </tbody>
           </table>
+          </div>
         </section>
       </main>
 
