@@ -97,13 +97,13 @@ body::before {
 .hero-media { position: absolute; inset: 0; z-index: 0; }
 .hero-media video {
   width: 100%; height: 100%; object-fit: cover;
-  filter: saturate(0.7) brightness(0.55) contrast(1.05);
+  filter: saturate(0.85) brightness(0.85) contrast(1.05);
 }
 .hero-veil {
   position: absolute; inset: 0;
   background:
-    linear-gradient(90deg, #05060df2 0%, #05060dcc 42%, #05060d66 70%, #05060d99 100%),
-    linear-gradient(180deg, #05060db3 0%, transparent 30%, transparent 60%, #05060d 100%);
+    linear-gradient(90deg, #05060dcc 0%, #05060d80 40%, #05060d1a 68%, #05060d40 100%),
+    linear-gradient(180deg, #05060d66 0%, transparent 26%, transparent 62%, #05060df2 100%);
 }
 .hero-inner {
   position: relative; z-index: 1;
