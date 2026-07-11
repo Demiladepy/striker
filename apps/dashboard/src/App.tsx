@@ -2,8 +2,11 @@ import { useEffect, useState } from "react";
 import type { AgentState, Call, Insight, LedgerEntry, MatchSummary, Outcome, SignalsSnapshot, TrackRecord } from "./types";
 
 const EXPLORER = "https://testnet.blockscout.injective.network/tx/";
-/** Deployed: set VITE_AGENT_URL to the agent's public URL. Local: vite proxy. */
-const AGENT_BASE = import.meta.env.VITE_AGENT_URL ?? "/agent";
+/** Deployed: set VITE_AGENT_URL to the agent's public URL. Local: vite proxy.
+ *  Sanitized: env dashboards and shells can smuggle in BOMs/whitespace that
+ *  turn an absolute URL into a relative 404. */
+const AGENT_BASE = (import.meta.env.VITE_AGENT_URL ?? "/agent")
+  .replace(/^[\s﻿]+|[\s﻿/]+$/g, "");
 
 const usdc = (micro: string) => (Number(micro) / 1_000_000).toFixed(2);
 const clock = (ts: number) =>
