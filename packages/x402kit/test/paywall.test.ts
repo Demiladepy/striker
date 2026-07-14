@@ -10,6 +10,11 @@ import express from "express";
 import type { Server } from "node:http";
 import { makeBuyer, makePaywall, type SettlementRecord } from "../src/index.ts";
 
+// createPayment reads the chain while signing; the package's default testnet
+// RPC serves stale data and stalls — use the healthy sentry RPC, generous timeout.
+const RPC = process.env.INJECTIVE_RPC_URL ?? "https://testnet.sentry.chain.json-rpc.injective.network";
+const SLOW = 30_000;
+
 const settlements: SettlementRecord[] = [];
 let server: Server;
 let base: string;
@@ -58,8 +63,8 @@ describe("x402 sim paywall", () => {
     expect(await res.json()).toEqual({ open: true });
   });
 
-  it("completes the 402 → sign → retry cycle and issues a receipt", async () => {
-    const buyer = makeBuyer({ mode: "sim", network: "eip155:1439" });
+  it("completes the 402 → sign → retry cycle and issues a receipt", { timeout: SLOW }, async () => {
+    const buyer = makeBuyer({ mode: "sim", network: "eip155:1439", rpcUrl: RPC });
     const res = await buyer.fetch(`${base}/paid`);
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual({ secret: "striker" });
@@ -77,8 +82,8 @@ describe("x402 sim paywall", () => {
     expect(settled.payer.toLowerCase()).toBe(buyer.address.toLowerCase());
   });
 
-  it("rejects a replayed payment signature (nonce reuse)", async () => {
-    const buyer = makeBuyer({ mode: "sim", network: "eip155:1439" });
+  it("rejects a replayed payment signature (nonce reuse)", { timeout: SLOW }, async () => {
+    const buyer = makeBuyer({ mode: "sim", network: "eip155:1439", rpcUrl: RPC });
     const first = await buyer.fetch(`${base}/paid`);
     expect(first.status).toBe(200);
 
@@ -92,7 +97,7 @@ describe("x402 sim paywall", () => {
 
     const quoteRes = await fetch(`${base}/paid`);
     const required = parsePaymentRequired(quoteRes.headers.get("PAYMENT-REQUIRED")!);
-    const payload = await createPayment({ privateKey: generatePrivateKey() }, required.accepts[0]);
+    const payload = await createPayment({ privateKey: generatePrivateKey(), rpcUrl: RPC }, required.accepts[0]);
     const header = encodePaymentSignatureHeader(payload);
 
     const paidOnce = await fetch(`${base}/paid`, { headers: { "PAYMENT-SIGNATURE": header } });

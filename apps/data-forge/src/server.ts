@@ -89,6 +89,17 @@ app.get("/api/stats", (_req, res) => {
   });
 });
 
+// Mutual keep-alive on free-tier hosting: the agent's scoreboard polls keep
+// this service warm; pinging the agent back keeps IT warm. Neither spins down
+// while the other breathes.
+const agentUrl = process.env.AGENT_URL;
+if (agentUrl) {
+  setInterval(() => {
+    fetch(`${agentUrl}/health`).catch(() => {});
+  }, 8 * 60_000);
+  console.log(`[forge] keep-alive pings → ${agentUrl}`);
+}
+
 app.listen(CONFIG.port, () => {
   const receiver = CONFIG.privateKey ? walletAddress(CONFIG.privateKey) : "(ephemeral sim wallet)";
   console.log(`⚒️  DATA FORGE on http://localhost:${CONFIG.port}  mode=${CONFIG.mode}  network=${CONFIG.network}`);

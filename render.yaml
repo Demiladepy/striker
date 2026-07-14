@@ -19,6 +19,8 @@ services:
         value: "15"
       - key: INJECTIVE_RPC_URL
         value: https://testnet.sentry.chain.json-rpc.injective.network
+      - key: AGENT_URL
+        value: https://striker-agent.onrender.com
 
   - type: web
     name: striker-agent

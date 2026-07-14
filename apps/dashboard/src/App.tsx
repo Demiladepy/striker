@@ -291,7 +291,9 @@ function LedgerRow({ entry }: { entry: LedgerEntry }) {
         {sign}
         {usdc(entry.amountMicro)}
       </td>
-      <td>{entry.kind}</td>
+      <td>
+        <span className={`kind-pill ${entry.kind}`}>{entry.kind.replace("_", " ")}</span>
+      </td>
       <td className="purpose">{entry.purpose}</td>
       <td>
         <TxLink hash={entry.txHash} simulated={entry.simulated} />
@@ -343,7 +345,9 @@ export default function App() {
   return (
     <div className="shell">
       <nav className="nav">
-        <span className="nav-logo">⚡ STRIKER</span>
+        <span className="nav-logo">
+          ⚡ STRIKER <span className="status-dot" title="agent online" />
+        </span>
         <div className="nav-links">
           <a href="#board">Matches</a>
           <a href="#insights">Insights</a>
@@ -396,6 +400,13 @@ export default function App() {
           <a className="btn-play" href="#ledger">
             <span className="play-circle">▶</span> Watch the ledger live
           </a>
+        </div>
+        <div className="tech-chips">
+          {["x402 micropayments", "CCTP treasury", "MCP Server", "Agent Skills"].map((t) => (
+            <span key={t} className="chip">
+              <span className="chip-dot" /> {t}
+            </span>
+          ))}
         </div>
         <div className="hero-stats">
           <div>
@@ -478,7 +489,7 @@ export default function App() {
         <div className="side-col">
           <section className="panel" id="board">
             <h2>
-              match board <span className="muted">({live.length} live)</span>
+              match board {live.length > 0 && <span className="count-pill live-pill">{live.length} LIVE</span>}
             </h2>
             <div className="matches">
               {state.board?.matches.map((m) => <MatchCard key={m.id} match={m} />) ?? <p>no feed yet</p>}
@@ -489,7 +500,10 @@ export default function App() {
         </div>
 
         <section className="panel wide" id="insights">
-          <h2>insight stream — {state.prices.insightUsdc} USDC per full read via x402</h2>
+          <h2>
+            insight stream <span className="count-pill">{state.insights.length}</span>
+            <span className="h2-meta">{state.prices.insightUsdc} USDC per full read via x402</span>
+          </h2>
           <div className="insights">
             {state.insights.length === 0 ? (
               <p className="muted">STRIKER is watching… first paid buy lands on the next big moment.</p>
