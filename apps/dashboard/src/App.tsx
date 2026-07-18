@@ -308,6 +308,7 @@ export default function App() {
 
   useEffect(() => {
     let cancelled = false;
+    let onSnapshot = false;
     const poll = async () => {
       try {
         const res = await fetch(`${AGENT_BASE}/api/state`);
@@ -316,11 +317,26 @@ export default function App() {
         if (!cancelled) {
           setState(next);
           setError(null);
+          onSnapshot = false;
         }
       } catch (err) {
-        if (!cancelled) setError(err instanceof Error ? err.message : String(err));
+        // Live backend unreachable (free-tier nap, suspension) — fall back to
+        // the baked snapshot of the agent's last verified session, same origin.
+        try {
+          const res = await fetch("/api/state");
+          if (!res.ok) throw new Error(`snapshot ${res.status}`);
+          const snap = (await res.json()) as AgentState;
+          if (!cancelled) {
+            setState(snap);
+            setError(null);
+            onSnapshot = true;
+          }
+        } catch {
+          if (!cancelled) setError(err instanceof Error ? err.message : String(err));
+        }
       } finally {
-        if (!cancelled) setTimeout(poll, 3000);
+        // ease off while on the fallback; the next success flips back to live
+        if (!cancelled) setTimeout(poll, onSnapshot ? 15000 : 3000);
       }
     };
     void poll();
@@ -357,9 +373,15 @@ export default function App() {
           </a>
         </div>
         <div className="badges">
-          <span className={`badge mode-${state.agent.mode}`}>
-            {state.agent.mode === "live" ? "LIVE · Injective EVM testnet" : "SIM · real signatures, simulated settlement"}
-          </span>
+          {state.snapshotAt ? (
+            <span className="badge mode-sim" title={`captured ${new Date(state.snapshotAt).toLocaleString()}`}>
+              📼 SNAPSHOT · last verified session (backend waking)
+            </span>
+          ) : (
+            <span className={`badge mode-${state.agent.mode}`}>
+              {state.agent.mode === "live" ? "LIVE · Injective EVM testnet" : "SIM · real signatures, simulated settlement"}
+            </span>
+          )}
           <span className="badge">{state.board?.source === "live" ? "🌍 live World Cup feed" : "🎬 replay slate"}</span>
         </div>
       </nav>

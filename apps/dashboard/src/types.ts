@@ -106,6 +106,8 @@ export interface SignalsSnapshot {
 }
 
 export interface AgentState {
+  /** present when served from the baked fallback instead of the live backend */
+  snapshotAt?: string;
   agent: {
     name: string;
     address: string;
