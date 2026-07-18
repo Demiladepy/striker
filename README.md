@@ -49,6 +49,30 @@ No accounts. No API keys. No human in the loop.
    CCTP v2 top-up when balance < floor (reserve chain ──▶ Injective)
 ```
 
+## Architecture
+
+```mermaid
+flowchart LR
+    subgraph Injective["Injective EVM testnet (1439)"]
+        USDC[("USDC\n(EIP-3009)")]
+    end
+    subgraph Forge["Data Forge"]
+        FD[World Cup feed] --> AN[analytics engine]
+        AN --> PW[x402 paywall]
+    end
+    subgraph Agent["STRIKER agent"]
+        LOOP[decision loop] --> BUY[x402 buyer]
+        LOOP --> BRAIN[Claude brain]
+        BRAIN --> STORE[x402 storefront]
+        LOOP --> PRED[calls · stakes · Brier grades]
+        TREAS[CCTP treasury] -->|Sepolia burn → Injective mint| USDC
+    end
+    BUY -->|402 → sign → settle| PW
+    PW -->|transferWithAuthorization| USDC
+    STORE -->|sells insights| MCP[MCP server + Agent Skill + dashboard]
+    MCP -->|any AI client pays via x402| STORE
+```
+
 ## How each Injective technology is used
 
 ### x402 — the core of the product, used on BOTH sides of the market
@@ -152,6 +176,51 @@ apps/mcp/                  STRIKER MCP server — x402-paid insight buys as MCP 
 skills/worldcup-analyst/   installable Agent Skill + x402 payer script
 scripts/gen-wallets.mjs    wallet bootstrap
 ```
+
+## Judge mode — buy an insight from Claude in 60 seconds
+
+STRIKER's whole thesis is that AI agents can be paying customers. Prove it with
+your own AI:
+
+```bash
+git clone https://github.com/Demiladepy/striker && cd striker && npm install
+npm run forge   # terminal 1 — data API (sim mode: real signatures, no funds needed)
+npm run agent   # terminal 2 — STRIKER
+```
+
+Add the MCP server to Claude Code (`.mcp.json` — template in
+[`.mcp.json.example`](.mcp.json.example)), then ask Claude:
+
+> "Use the striker tools to check the scoreboard, then buy STRIKER's freshest
+> insight and show me the settlement receipt."
+
+Claude calls `get_scoreboard` → `buy_insight`; the `buy_insight` call completes
+a full x402 cycle — 402 quote, EIP-3009 signature, protocol verification — and
+returns the settlement receipt (tx + payer) alongside the analysis. You just
+watched one AI buy alpha from another over HTTP.
+
+## Verifiable on-chain artifacts
+
+Everything below is a real transaction produced by the agent during the 2026
+knockout rounds — click and verify:
+
+| Artifact | Tx |
+|---|---|
+| CCTP v2 burn — 10 USDC on Ethereum Sepolia | [`0x0d8a33b6…`](https://sepolia.etherscan.io/tx/0x0d8a33b6bc076488bc164395bc27a9a0713fb847e08b97c3f34350b8c692b829) |
+| CCTP v2 mint — native USDC on Injective (domain 29, ~10s attestation) | [`0x5c6336af…`](https://testnet.blockscout.injective.network/tx/0x5c6336af48f877492338f7ef8cd12245dadd5bdb66608abfd5fc350bbae7c982) |
+| First live x402 settlement (agent → forge, 0.02 USDC, block 132515061) | [`0x73193dd8…`](https://testnet.blockscout.injective.network/tx/0x73193dd86257ce9845d264fde9e776dd890ce69f62def7ca64164b5c60fef83f) |
+| GOAL-triggered buy — fired seconds after Norway went 1–0 up on Brazil | [`0xcc5fa156…`](https://testnet.blockscout.injective.network/tx/0xcc5fa15684ad22fa09746ad6e11f723d44f2f931f3838be46991f4955b6f4366) |
+| Agent wallet (every settlement it ever made) | [`0x544C…10b5`](https://testnet.blockscout.injective.network/address/0x544C6D1a342BA7b5770f493812357655E33910b5) |
+
+Knockout-round record, all graded publicly on the
+[dashboard](https://striker-three.vercel.app): 108+ settlements, 63% call
+accuracy, +20% Brier skill over an uninformed forecast — including calling
+England over Norway with a stake down.
+
+While building we hit and characterized two platform issues (stale receipts on
+the default testnet RPC; an HTTP-framing bug in `@injectivelabs/x402@rc.1`'s
+after-success settlement path) — findings and repro notes in
+[`docs/upstream-notes.md`](docs/upstream-notes.md).
 
 ## What the judges should poke at
 

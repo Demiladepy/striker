@@ -15,6 +15,15 @@
         "cd /d C:\\Users\\User\\Desktop\\nibiru\\stipend && npx next dev -p 3999"
       ],
       "port": 3999
+    },
+    {
+      "name": "deadbolt-app",
+      "runtimeExecutable": "cmd",
+      "runtimeArgs": [
+        "/c",
+        "cd /d C:\\Users\\User\\Desktop\\work\\deadbolt\\app && npm run dev -- --port 5175"
+      ],
+      "port": 5175
     }
   ]
 }
